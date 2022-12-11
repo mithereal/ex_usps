@@ -1,28 +1,72 @@
 defmodule UspsEx.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/mithereal/usps_ex"
+
   def project do
     [
       app: :usps_ex,
-      version: "0.1.0",
-      elixir: "~> 1.13",
+      version: @version,
+      elixir: "~> 1.12",
+      build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      description: description(),
+      package: package(),
+      deps: deps(),
+      docs: docs()
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:eex, :logger]
+    ]
+  end
+
+  defp description do
+    """
+    A Feature Complete Usps api for elixir
+    """
+  end
+
+  defp package do
+    [
+      name: :usps_ex,
+      files: [
+        "lib/usps_ex.ex",
+        "lib/usps_ex",
+        "mix.exs",
+        "README.md",
+        "LICENSE"
+      ],
+      maintainers: ["Jason Clark"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:httpoison, ">= 0.0.0"},
+      {:sweet_xml, ">= 0.0.0"},
+      {:html_entities, ">= 0.0.0"},
+      {:jason, "~> 1.2"},
+      {:decimal, "~> 1.3"},
+      {:iso, "~> 1.2"},
+      {:csv, "~> 2.4", optional: true, only: [:dev]},
+      {:nanoid, "~> 2.0"}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "usps_ex",
+      source_url: @source_url,
+      extras: ["README.md"]
     ]
   end
 end

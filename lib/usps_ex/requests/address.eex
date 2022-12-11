@@ -1,0 +1,30 @@
+<%# Prefix is either "From" or "To" %>
+<%# Address1 is actually line 2 %>
+<%# Zip4 can be blank %>
+<% prefix = String.capitalize("#{@prefix}") %>
+
+<%= if international?(@address) do %>
+  <<%= prefix %>FirstName><%= @address.first_name %></<%= prefix %>FirstName>
+  <<%= prefix %>LastName><%= @address.last_name %></<%= prefix %>LastName>
+<% else %>
+  <<%= prefix %>Name><%= @address.first_name %> <%= @address.last_name %></<%= prefix %>Name>
+<% end %>
+
+<<%= prefix %>Firm><%= @address.company_name %></<%= prefix %>Firm>
+<<%= prefix %>Address1><%= @address.address_line_2 %></<%= prefix %>Address1>
+<<%= prefix %>Address2><%= @address.address %></<%= prefix %>Address2>
+<<%= prefix %>City><%= @address.city %></<%= prefix %>City>
+
+<%= if international?(@address.country_code) do %>
+  <<%= prefix %>Province><%= @address.state %></<%= prefix %>Province>
+  <<%= prefix %>Country><%= country(@address.country_code) %></<%= prefix %>Country>
+  <<%= prefix %>PostalCode><%= @address.postal_code %></<%= prefix %>PostalCode>
+  <<%= prefix %>POBoxFlag>N</<%= prefix %>POBoxFlag>
+  <<%= prefix %>Phone><%= @address.phone %></<%= prefix %>Phone>
+<% else %>
+  <<%= prefix %>State><%= @address.state %></<%= prefix %>State>
+  <<%= prefix %>Zip5><%= @address.postal_code %></<%= prefix %>Zip5>
+  <<%= prefix %>Zip4></<%= prefix %>Zip4>
+  <% phone = (@address.phone || "") |> String.replace(~r/^\+1/, "") |> String.replace(~r/\D+/, "") %>
+  <<%= prefix %>Phone><%= phone %></<%= prefix %>Phone>
+<% end %>

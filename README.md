@@ -1,6 +1,8 @@
 # UspsEx
 
-**TODO: Add description**
+**A Usps client for elixir**
+
+This client has feature parity to the usps web tools api.
 
 ## Installation
 
