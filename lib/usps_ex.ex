@@ -38,7 +38,7 @@ defmodule UspsEx do
   for f <-
         ~w(address cancel carrier_pickup_availability city_state_by_zipcode express_mail_commitments first_class_service_standards hold_for_pickup package_pickup_cancel package_pickup_change package_pickup_inquery package_pickup_schedule package_service_standardb priority_mail_service_standards proof_of_delivery return_label return_receipt label rate scan sdc_get_locations sunday_holiday track track_confirm_by_email track_fields validate_address zipcode)a do
     EEx.function_from_file(
-      :def,
+      :defp,
       :"build_#{f}_request",
       __DIR__ <> "/usps_ex/requests/#{f}.eex",
       [
@@ -69,7 +69,91 @@ defmodule UspsEx do
     end
   end
 
+  def package_pickup_schedule(data) do
+    package_pickup_schedule(
+      data.first_name,
+      data.last_name,
+      data.firm_name,
+      data.suite_or_apt,
+      data.address2,
+      data.city,
+      data.state,
+      data.zip5,
+      data.zip4,
+      data.phone,
+      data.extension,
+      data.packages,
+      data.estimated_weight,
+      data.package_location,
+      data.special_instructions,
+      data.urbanization
+    )
+  end
+
+  def package_pickup_schedule(
+        first_name,
+        last_name,
+        firm_name,
+        suite_or_apt,
+        address2,
+        city,
+        state,
+        zip5,
+        zip4,
+        phone,
+        extension,
+        packages \\ [],
+        estimated_weight \\ 0,
+        package_location \\ 0,
+        special_instructions \\ 0,
+        urbanization \\ nil
+      ) do
+    api = "CarrierPickupScheduleRequest"
+
+    xml =
+      build_package_pickup_schedule_request(
+        first_name: first_name,
+        last_name: last_name,
+        firm_name: firm_name,
+        suite_or_apt: suite_or_apt,
+        address2: address2,
+        city: city,
+        state: state,
+        zip5: zip5,
+        zip4: zip4,
+        phone: phone,
+        extension: extension,
+        packages: packages,
+        estimated_weight: estimated_weight,
+        package_location: package_location,
+        special_instructions: special_instructions,
+        urbanization: urbanization
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
+                    "Content-Type" => "application/xml"
+                  }) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//CarrierPickupScheduleResponse//Address"l,
+         firm_name: ~x"./FirmName//text()"s,
+         address1: ~x"./Address1//text()"s,
+         address2: ~x"./Address2//text()"l,
+         city: ~x"./City//text()"l,
+         state: ~x"./State//text()"l,
+         urbanization: ~x"./Urbanization//text()"l,
+         zip5: ~x"./Zip5//text()"l,
+         zip4: ~x"./Zip4//text()"l
+       )}
+    end
+  end
+
   def hold_for_pickup(data) do
+    hold_for_pickup(data.origin_zip, data.destination_zip, data.mail_class)
+  end
+
+  def hold_for_pickup(origin_zip, destination_zip, mail_class) do
     api = "HFPFacilityInfo"
 
     xml =
@@ -85,12 +169,68 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//PriorityMailResponse"l,
+         ~x"//HFPFacilityInfoResponse"l,
          pickup_city: ~x"./PickupCity//text()"s,
          pickup_state: ~x"./PickupState//text()"l,
          pickup_zip: ~x"./PickupZIP//text()"l,
          pickup_zip_4: ~x"./PickupZIP4//text()"l,
          service: ~x"./Service//text()"l
+       )}
+    end
+  end
+
+  def carrier_pickup_availability(data) do
+    carrier_pickup_availability(
+      data.firm_name,
+      data.suite_or_apt,
+      data.address2,
+      data.city,
+      data.state,
+      data.zip5,
+      data.zip4,
+      data.urbanization
+    )
+  end
+
+  def carrier_pickup_availability(
+        firm_name,
+        suite_or_apt,
+        address2,
+        city,
+        state,
+        zip5,
+        zip4,
+        urbanization \\ nil
+      ) do
+    api = "CarrierPickupAvailability"
+
+    xml =
+      build_carrier_pickup_availability_request(
+        firm_name: firm_name,
+        suite_or_apt: suite_or_apt,
+        address2: address2,
+        city: city,
+        state: state,
+        urbanization: urbanization,
+        zip5: zip5,
+        zip4: zip4
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
+                    "Content-Type" => "application/xml"
+                  }) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//CarrierPickupAvailabilityResponse//Address"l,
+         firm_name: ~x"./FirmName//text()"s,
+         address1: ~x"./Address1//text()"s,
+         address2: ~x"./Address2//text()"l,
+         city: ~x"./City//text()"l,
+         state: ~x"./State//text()"l,
+         urbanization: ~x"./Urbanization//text()"l,
+         zip5: ~x"./Zip5//text()"l,
+         zip4: ~x"./Zip4//text()"l
        )}
     end
   end
@@ -132,13 +272,13 @@ defmodule UspsEx do
   def package_service_standardb(origin_zip, destination_zip, type, mail_class) do
     api = "StandardB"
 
-    xml =
-      build_priority_mail_service_standardb_request(
-        origin_zip: origin_zip,
-        destination_zip: destination_zip,
-        type: type,
-        mail_class: mail_class
-      )
+    xml = ""
+    #      build_priority_mail_service_standardb_request(
+    #        origin_zip: origin_zip,
+    #        destination_zip: destination_zip,
+    #        type: type,
+    #        mail_class: mail_class
+    #      )
 
     with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
                     "Content-Type" => "application/xml"
@@ -157,7 +297,12 @@ defmodule UspsEx do
   end
 
   def first_class_service_standards(data) do
-    package_service_standardb(data.origin_zip, data.destination_zip, data.type, data.mail_class)
+    first_class_service_standards(
+      data.origin_zip,
+      data.destination_zip,
+      data.type,
+      data.mail_class
+    )
   end
 
   def first_class_service_standards(origin_zip, destination_zip, type, mail_class) do
@@ -206,13 +351,13 @@ defmodule UspsEx do
       ) do
     api = "ExpressMailCommitment"
 
-    xml =
-      build_first_class_service_standards_request(
-        origin_zip: origin_zip,
-        destination_zip: destination_zip,
-        type: type,
-        mail_class: mail_class
-      )
+    xml = ""
+    #      build_express_mail_commitments_request(
+    #        origin_zip: origin_zip,
+    #        destination_zip: destination_zip,
+    #        type: type,
+    #        mail_class: mail_class
+    #      )
 
     with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
                     "Content-Type" => "application/xml"
@@ -377,7 +522,7 @@ defmodule UspsEx do
        xpath(
          body,
          ~x"//ZipCodeLookupResponse//Address"l,
-         firmName: ~x"./FirmName//text()"s,
+         firm_name: ~x"./FirmName//text()"s,
          address1: ~x"./Address1//text()"s,
          address2: ~x"./Address2//text()"l,
          city: ~x"./City//text()"l,
@@ -660,9 +805,9 @@ defmodule UspsEx do
 
   def config() do
     with un when is_binary(un) <-
-           Application.get_env(:ups_ex, :username, {:error, :not_found, :username}),
+           Application.get_env(:usps_ex, :username, {:error, :not_found, :username}),
          pw when is_binary(pw) <-
-           Application.get_env(:ups_ex, :password, {:error, :not_found, :password}) do
+           Application.get_env(:usps_ex, :password, {:error, :not_found, :password}) do
       %{
         username: un,
         password: pw

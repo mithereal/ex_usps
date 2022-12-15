@@ -56,12 +56,12 @@ defmodule UspsEx.Service do
   def get(:ups_three_day_select),
     do: %S{id: :ups_three_day_select, carrier: :ups, description: "UPS 3 Day Select"}
 
-  def get(:ups_expedited), do: %S{id: :ups_expedited, carrier: :ups, description: "UPS Expedited"}
+  def get(:usps_expedited), do: %S{id: :usps_expedited, carrier: :ups, description: "UPS Expedited"}
 
-  def get(:ups_express_saver),
-    do: %S{id: :ups_express_saver, carrier: :ups, description: "UPS Express Saver"}
+  def get(:usps_express_saver),
+    do: %S{id: :usps_express_saver, carrier: :ups, description: "UPS Express Saver"}
 
-  def get(:ups_express), do: %S{id: :ups_express, carrier: :ups, description: "UPS Express"}
+  def get(:usps_express), do: %S{id: :usps_express, carrier: :ups, description: "UPS Express"}
   def get(:ups_standard), do: %S{id: :ups_standard, carrier: :ups, description: "UPS Standard"}
 
   def get(:ups_worldwide_saver),
@@ -141,9 +141,9 @@ defmodule UspsEx.Service do
   def service_code(:ups_next_day_air), do: "01"
   def service_code(:ups_second_day_air), do: "02"
   def service_code(:ups_three_day_select), do: "12"
-  def service_code(:ups_expedited), do: "02"
-  def service_code(:ups_express_saver), do: "13"
-  def service_code(:ups_express), do: "01"
+  def service_code(:usps_expedited), do: "02"
+  def service_code(:usps_express_saver), do: "13"
+  def service_code(:usps_express), do: "01"
   def service_code(:ups_standard), do: "11"
   def service_code(:ups_worldwide_saver), do: "65"
   def service_code(:ups_worldwide_expedited), do: "08"

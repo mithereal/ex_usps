@@ -5,9 +5,9 @@ defmodule UspsEx.Config do
 
   def config() do
     with un when is_binary(un) <-
-           Application.get_env(:ups_ex, :username, {:error, :not_found, :username}),
+           Application.get_env(:usps_ex, :username, {:error, :not_found, :username}),
          pw when is_binary(pw) <-
-           Application.get_env(:ups_ex, :password, {:error, :not_found, :password}) do
+           Application.get_env(:usps_ex, :password, {:error, :not_found, :password}) do
       %{
         username: un,
         password: pw
@@ -22,7 +22,7 @@ defmodule UspsEx.Config do
   end
 
   def currency_code() do
-    case Application.get_env(:ups_ex, :currency, :usd) do
+    case Application.get_env(:usps_ex, :currency, :usd) do
       code when code in [:usd, :can, :mxn] ->
         code |> Atom.to_string() |> String.upcase()
 
@@ -32,7 +32,7 @@ defmodule UspsEx.Config do
   end
 
   def env() do
-    case Application.get_env(:ups_ex, :env, :dev) do
+    case Application.get_env(:usps_ex, :env, :dev) do
       e when e in [:dev, :prod] -> e
       _ -> raise InvalidConfigError, "UspsEx env must be either :dev or :prod"
     end

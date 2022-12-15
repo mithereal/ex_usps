@@ -1,6 +1,6 @@
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
-use Mix.Config
+import Config
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
@@ -12,7 +12,7 @@ use Mix.Config
 #
 env = System.get_env("MIX_ENV", "dev")
 
-config :ups_ex,
+config :usps_ex,
   env: String.to_atom(env),
 username: "401DATAT0093",
 password: "088HE84QE916"

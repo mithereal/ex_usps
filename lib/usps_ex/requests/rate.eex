@@ -1,7 +1,6 @@
 <% parcels = @shipment.parcels %>
 <% username = config().username %>
 <% machinable = config().machinable %>
-
 <%= if international?(@shipment) do %>
   <IntlRateV2Request USERID='<%= username %>'>
     <Revision>2</Revision>
