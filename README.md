@@ -12,7 +12,7 @@ by adding `usps_ex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:usps_ex, "~> 0.1.0"}
+    {:usps_ex, "~> 1.33.0"}
   ]
 end
 ```

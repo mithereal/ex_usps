@@ -71,6 +71,19 @@ defmodule UspsEx do
     end
   end
 
+  def sdc_get_locations(data) do
+    sdc_get_locations(
+      data.mail_class,
+      data.origin_zip,
+      data.destination_zip,
+      data.accept_date,
+      data.accept_time,
+      data.non_emdetail,
+      data.non_emorigin_type,
+      data.non_emdest_type
+    )
+  end
+
   def sdc_get_locations(
         mail_class,
         origin_zip,
@@ -376,20 +389,10 @@ defmodule UspsEx do
     end
   end
 
-  def hold_for_pickup(data) do
-    hold_for_pickup(data.city, data.state, data.zip, data.zip4, data.service)
-  end
-
-  def hold_for_pickup(city, state, zip, zip4, service) do
+  def hold_for_pickup(zip) do
     api = "HFPFacilityInfo"
 
-    xml =
-      build_hold_for_pickup_request(
-        city: city,
-        state: state,
-        zip: zip,
-        service: service
-      )
+    xml = build_hold_for_pickup_request(zip: zip)
 
     with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
                     "Content-Type" => "application/xml"
@@ -481,6 +484,19 @@ defmodule UspsEx do
          status: ~x"./Status//text()"s
        )}
     end
+  end
+
+  def package_pickup_availability(data) do
+    package_pickup_availability(
+      data.firm_name,
+      data.suite_or_apt,
+      data.address2,
+      data.city,
+      data.state,
+      data.zip5,
+      data.zip4,
+      data.urbanization
+    )
   end
 
   def package_pickup_availability(
@@ -806,6 +822,10 @@ defmodule UspsEx do
     end
   end
 
+  def sunday_holiday(data) do
+    sunday_holiday(data.sunday_holiday, data.from_zip_code, data.to_zip_code)
+  end
+
   def sunday_holiday(sunday_holiday, from_zip_code, to_zip_code) do
     api = "SundayHolidayAvailability"
 
@@ -828,7 +848,41 @@ defmodule UspsEx do
     end
   end
 
-  def scan(form, name, firm, address1, address2, city, state, zip5, zip4, close_manifest \\ false) do
+  def scan(data) do
+    scan(
+      data.form,
+      data.name,
+      data.firm,
+      data.address1,
+      data.address2,
+      data.city,
+      data.state,
+      data.zip5,
+      data.zip4,
+      data.pkg_bar_code,
+      data.mail_date,
+      data.mail_time,
+      data.image_type,
+      data.customer_ref_no
+    )
+  end
+
+  def scan(
+        form,
+        name,
+        firm,
+        address1,
+        address2,
+        city,
+        state,
+        zip5,
+        zip4,
+        pkg_bar_code,
+        mail_date,
+        mail_time,
+        image_type,
+        customer_ref_no
+      ) do
     api = "SCAN"
 
     xml =
@@ -840,8 +894,13 @@ defmodule UspsEx do
         address2: address2,
         city: city,
         state: state,
-        firm: zip5,
-        firm: zip4
+        zip5: zip5,
+        zip4: zip4,
+        pkg_bar_code: pkg_bar_code,
+        mail_date: mail_date,
+        mail_time: mail_time,
+        image_type: image_type,
+        customer_ref_no: customer_ref_no
       )
 
     with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
@@ -1155,6 +1214,42 @@ defmodule UspsEx do
     end
   end
 
+  def return_label(data) do
+    return_label(
+      data.image_type,
+      data.separate_receipt_page,
+      data.customer_first_name,
+      data.customer_last_name,
+      data.customer_firm,
+      data.customer_address2,
+      data.customer_city,
+      data.customer_state,
+      data.customer_zip5,
+      data.customer_zip4,
+      data.po_zip_code,
+      data.allow_non_cleansed_origin_addr,
+      data.retailer_attn,
+      data.retailer_firm,
+      data.weight_in_ounces,
+      data.service_type,
+      data.width,
+      data.length,
+      data.height,
+      data.girth,
+      data.machinable,
+      data.customer_ref_no,
+      data.print_customer_ref_no,
+      data.customer_ref_no2,
+      data.print_customer_ref_no2,
+      data.sender_name,
+      data.sender_email,
+      data.recipient_name,
+      data.recipient_email,
+      data.tracking_email_pdf,
+      data.extra_services
+    )
+  end
+
   def return_label(
         image_type,
         separate_receipt_page,
@@ -1261,6 +1356,21 @@ defmodule UspsEx do
     end
   end
 
+  def track_and_confirm_by_email(data) do
+    track_and_confirm_by_email(
+      data.tracking_number,
+      data.company_name,
+      data.mp_suffix,
+      data.mp_date,
+      data.request_type,
+      data.first_name,
+      data.last_name,
+      data.email,
+      data.email2,
+      data.email3
+    )
+  end
+
   def track_and_confirm_by_email(
         tracking_number,
         company_name,
@@ -1343,6 +1453,18 @@ defmodule UspsEx do
     end
   end
 
+  def proof_of_delivery(data) do
+    proof_of_delivery(
+      data.tracking_number,
+      data.data.client_ip,
+      data.company_name,
+      data.mp_suffix,
+      data.mp_date,
+      data.request_type,
+      data.email
+    )
+  end
+
   def proof_of_delivery(
         tracking_number,
         client_ip,
@@ -1372,6 +1494,21 @@ defmodule UspsEx do
          return_code: ~x"./ReturnCode/text()"
        )}
     end
+  end
+
+  def return_receipt(data) do
+    return_receipt(
+      data.tracking_number,
+      data.track_id,
+      data.client_ip,
+      data.company_name,
+      data.mp_suffix,
+      data.mp_date,
+      data.request_type,
+      data.email,
+      data.table_code,
+      data.cust_reg_id
+    )
   end
 
   def return_receipt(
