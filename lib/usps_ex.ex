@@ -7,6 +7,7 @@ defmodule UspsEx do
   import SweetXml
 
   alias UspsEx.Error
+  alias UspsEx.Transaction
 
   import UspsEx.Util,
     only: [
@@ -28,7 +29,6 @@ defmodule UspsEx do
     ]
 
   alias UspsEx.Client
-  alias UspsEx.Insurance
   alias UspsEx.Config
   alias UspsEx.Error
   alias UspsEx.Label
@@ -384,10 +384,6 @@ defmodule UspsEx do
       end)
 
     {:ok, rates}
-  end
-
-  def machineable?(_, _, _) do
-    "FALSE"
   end
 
   def machineable?(parcel, "Rectangular", true) do
@@ -780,8 +776,6 @@ defmodule UspsEx do
 
   def insurance_code(shipment, service),
     do: insurance_code(international?(shipment), service)
-
-  def insurance_code(_, data), do: Insurance.code(data)
 
   def track_parcels(tracking_number) when is_binary(tracking_number) do
     track_parcels([tracking_number])

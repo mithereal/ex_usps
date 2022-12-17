@@ -4,7 +4,6 @@
 <% content_type = Map.get(config(), :content_type, "MERCHANDISE") %>
 <% destination_rate_indicator = Map.get(config(), :destination_rate_indicator, "N") %>
 <% address_service_requested = Map.get(config(), :address_service_requested, "true") %>
-<% country_of_origin = Map.get(@shipment.from, :country, "US")  %>
 <<%= @api %>Request USERID='<%= username %>'>
   <%= if international?(@shipment) do %>
     <Revision>2</Revision>
