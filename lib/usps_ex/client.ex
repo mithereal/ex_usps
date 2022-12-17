@@ -5,8 +5,9 @@ defmodule UspsEx.Client do
   def process_url(endpoint) do
     subdomain =
       case UspsEx.env() do
-        :dev -> "stg-secure"
-        :prod -> "secure"
+        :test -> "stg-secure"
+        :dev -> "secure"
+        :prod -> "production"
       end
 
     "https://#{subdomain}.shippingapis.com/#{endpoint}"
