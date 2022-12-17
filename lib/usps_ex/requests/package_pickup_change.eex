@@ -18,5 +18,5 @@
 <EstimatedWeight><%= @estimated_weight %></EstimatedWeight>
 <PackageLocation><%= @packag_location %></PackageLocation>
 <SpecialInstructions><%= @special_instructions %></SpecialInstructions>
-<ConfirmationNumber><%= @confirmation_number %><</ConfirmationNumber>
+<ConfirmationNumber><%= @confirmation_number %></ConfirmationNumber>
 </CarrierPickupChangeRequest>

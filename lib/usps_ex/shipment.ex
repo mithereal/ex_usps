@@ -1,7 +1,7 @@
 defmodule UspsEx.Shipment do
   @moduledoc """
   A `Shipment` represents everything needed to fetch rates from carriers: an
-  origin, a destination, and a list of parcels. An optional `:id` field
+  origin, a destination, and a list of packages. An optional `:id` field
   is provided in the struct, which may be used by the end user to represent the
   user's internal identifier for the shipment. The id is not used by UspsEx.
 
@@ -13,19 +13,19 @@ defmodule UspsEx.Shipment do
 
   alias UspsEx.Shipment
 
-  @enforce_keys [:from, :to, :ship_date, :parcels]
+  @enforce_keys [:from, :to, :ship_date, :packages]
   defstruct [
     :id,
     :from,
     :to,
     :ship_date,
-    :parcels
+    :packages
   ]
 
   @doc """
   Builds a `Shipment`.
   """
-  def new(from, to, parcels \\ [], opts \\ []) do
+  def new(from, to, packages \\ [], opts \\ []) do
     ship_date = Keyword.get(opts, :ship_date)
     allow_high_risk = Keyword.get(opts, :high_risk)
 
@@ -41,7 +41,7 @@ defmodule UspsEx.Shipment do
       if Enum.member?(@high_risk_countries, String.to_atom(String.downcase(to.country))) do
         throw(
           {:error,
-           "Usps flags #{to.country} as high risk, you must pass [high_risk: true] ex. UspsEx.Shipment.new(from, to, parcels, [high_risk: true]) ."}
+           "Usps flags #{to.country} as high risk, you must pass [high_risk: true] ex. UspsEx.Shipment.new(from, to, packages, [high_risk: true]) ."}
         )
       end
     end
@@ -53,7 +53,7 @@ defmodule UspsEx.Shipment do
     shipment = %Shipment{
       from: from,
       to: to,
-      parcels: parcels,
+      packages: packages,
       ship_date: ship_date
     }
 
@@ -65,8 +65,8 @@ defmodule UspsEx.Shipment do
   @doc """
   Builds a `Shipment`. Raises on failure.
   """
-  def new!(from, to, [] = parcels, opts \\ []) do
-    case new(from, to, parcels, opts) do
+  def new!(from, to, [] = packages, opts \\ []) do
+    case new(from, to, packages, opts) do
       {:ok, shipment} -> shipment
       {:error, error} -> raise error
     end

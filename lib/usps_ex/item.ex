@@ -1,6 +1,6 @@
 defmodule UspsEx.Item do
   @moduledoc """
-  Defines a struct for storing an `UspsEx` in a `Parcel`.
+  Defines a struct for storing an `UspsEx` in a `Package`.
 
   The `monetary_value` *might* be required depending on the origin/destination
   countries of the shipment. Both `monetary_value` and `insurance` are integers

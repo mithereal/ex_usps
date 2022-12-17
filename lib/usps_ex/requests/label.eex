@@ -10,7 +10,7 @@
     <%= build_address_request shipment: @shipment, address: @shipment.from %>
     <%= build_address_request shipment: @shipment, address: @shipment.to %>
 
-<%= for package <- @parcels do %>
+<%= for package <- @packages do %>
     <Container><%= container(package) %></Container>
 
     <ShippingContents>
@@ -48,7 +48,7 @@
   <% else %>
     <%= build_address_request shipment: @shipment, address: @shipment.from %>
     <%= build_address_request shipment: @shipment, address: @shipment.to %>
-<%= for package <- @parcels do %>
+<%= for package <- @packages do %>
     <WeightInOunces><%= weight_in_ounces(package.weight) %></WeightInOunces>
     <ServiceType><%= Service.service_code(@service) %></ServiceType>
     <%= if @service.id == :usps_priority_express do %>

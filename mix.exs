@@ -2,7 +2,7 @@ defmodule UspsEx.MixProject do
   use Mix.Project
 
   @version "1.33.0"
-  @source_url "https://github.com/mithereal/usps_ex"
+  @source_url "https://github.com/mithereal/ex_usps"
 
   def project do
     [

@@ -255,14 +255,14 @@ defmodule UspsEx.Util do
       end
   end
 
-  def size(parcel) do
+  def size(package) do
     is_large? =
       cond do
-        container(parcel) == "RECTANGULAR" ->
+        container(package) == "RECTANGULAR" ->
           true
 
-        parcel.container in @large_containers ->
-          parcel
+        package.container in @large_containers ->
+          package
           |> Map.take(~w(large width height)a)
           |> Map.values()
           |> Enum.any?(&(&1 > 12))
@@ -349,8 +349,8 @@ defmodule UspsEx.Util do
     }
   end
 
-  def container(parcel) do
-    case containers()[parcel.container] do
+  def container(package) do
+    case containers()[package.container] do
       nil -> containers()[@default_container]
       container -> container
     end

@@ -8,5 +8,5 @@
 <State><%= @state %></State>
 <ZIP5><%= @zip5 %></ZIP5>
 <ZIP4><%= @zip4 %></ZIP4>
-<ConfirmationNumber><%= @confirmation_number %><</ConfirmationNumber>
+<ConfirmationNumber><%= @confirmation_number %></ConfirmationNumber>
 </CarrierPickupCancelRequest>
