@@ -6,6 +6,8 @@ defmodule UspsEx do
   require EEx
   import SweetXml
 
+  alias UspsEx.Error
+
   import UspsEx.Util,
     only: [
       state_without_country: 1,
@@ -272,13 +274,13 @@ defmodule UspsEx do
   def package_service_standardb(origin_zip, destination_zip, type, mail_class) do
     api = "StandardB"
 
-    xml = ""
-    #      build_priority_mail_service_standardb_request(
-    #        origin_zip: origin_zip,
-    #        destination_zip: destination_zip,
-    #        type: type,
-    #        mail_class: mail_class
-    #      )
+    xml =
+      build_package_service_standardb_request(
+        origin_zip: origin_zip,
+        destination_zip: destination_zip,
+        type: type,
+        mail_class: mail_class
+      )
 
     with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
                     "Content-Type" => "application/xml"
@@ -351,13 +353,15 @@ defmodule UspsEx do
       ) do
     api = "ExpressMailCommitment"
 
-    xml = ""
-    #      build_express_mail_commitments_request(
-    #        origin_zip: origin_zip,
-    #        destination_zip: destination_zip,
-    #        type: type,
-    #        mail_class: mail_class
-    #      )
+    xml =
+      build_express_mail_commitments_request(
+        origin_zip: origin_zip,
+        destination_zip: destination_zip,
+        date: date,
+        drop_off_time: drop_off_time,
+        return_dates: return_dates,
+        pm_guarantee: pm_guarantee
+      )
 
     with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
                     "Content-Type" => "application/xml"
@@ -638,11 +642,9 @@ defmodule UspsEx do
         service.id == :usps_first_class ->
           "eVSFirstClassMailIntl"
 
-        true ->
-          raise """
-          Only the Priority and Priority Express services are supported for
-          international shipments at the moment. (Received :#{service.id}.)
-          """
+        true -> raise Error, message: "Only the Priority and Priority Express services are supported for
+          international shipments at the moment. (Received :#{service.id}.)"
+
       end
 
     request = build_label_request(shipment: shipment, service: service, api: api)

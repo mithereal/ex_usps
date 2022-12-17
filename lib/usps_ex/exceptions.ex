@@ -1,4 +1,4 @@
-defmodule UspsEx.InvalidConfigError do
+defmodule UspsEx.Error do
   defexception [:message]
 
   def exception(message) do

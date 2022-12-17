@@ -1,7 +1,7 @@
 defmodule UspsEx.Config do
   @moduledoc false
 
-  alias UspsEx.InvalidConfigError
+  alias UspsEx.Error
 
   def config() do
     with un when is_binary(un) <-
@@ -14,10 +14,10 @@ defmodule UspsEx.Config do
       }
     else
       {:error, :not_found, token} ->
-        raise InvalidConfigError, message: "USPS config key missing: #{token}"
+        raise Error, message: "USPS config key missing: #{token}"
 
       {:error, :not_found} ->
-        raise InvalidConfigError, message: "USPS config is either invalid or not found."
+        raise Error, message: "USPS config is either invalid or not found."
     end
   end
 
@@ -27,7 +27,7 @@ defmodule UspsEx.Config do
         code |> Atom.to_string() |> String.upcase()
 
       _ ->
-        raise InvalidConfigError, "UspsEx currency must be either :usd, :can, or :mxn"
+        raise Error, "UspsEx currency must be either :usd, :can, or :mxn"
     end
   end
 
