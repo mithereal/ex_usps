@@ -5,5 +5,9 @@
 <MpSuffix ><%= @mp_suffix %></MpSuffix>
 <MpDate ><%= @mp_date %></MpDate>
 <RequestType><%= @request_type %></RequestType>
+<FirstName><%= @first_name %></RequestType>
+<LastName><%= @last_name %></RequestType>
 <Email1><%= @email %></Email1>
+<Email2><%= @email2 %></Email1>
+<Email3><%= @email3 %></Email1>
 </PTSEmailRequest>

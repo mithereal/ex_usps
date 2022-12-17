@@ -1227,6 +1227,156 @@ defmodule UspsEx do
     end
   end
 
+  def track_and_confirm_by_email(
+        tracking_number,
+        company_name,
+        mp_suffix,
+        mp_date,
+        request_type,
+        first_name,
+        last_name,
+        email,
+        email2 \\ nil,
+        email3 \\ nil
+      ) do
+    request =
+      build_track_confirm_by_email_request(
+        tracking_number: tracking_number,
+        company_name: company_name,
+        mp_suffix: mp_suffix,
+        mp_date: mp_date,
+        request_type: request_type,
+        first_name: first_name,
+        last_name: last_name,
+        email: email,
+        email: email2,
+        email: email3
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: "TrackV2", XML: request}) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//PTSEMAILRESULT",
+         result_text: ~x"./ResultText/text()",
+         return_code: ~x"./ReturnCode/text()"
+       )}
+    end
+  end
+
+  def package_tracking_fields(tracking_numbers) when is_list(tracking_numbers) do
+    request = build_track_fields_request(tracking_numbers: tracking_numbers)
+
+    with_response Client.post("ShippingAPI.dll", %{API: "TrackV2", XML: request}) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//TrackResponse//TrackInfo"l,
+         guaranteed_delivery_date: ~x"./GuaranteedDeliveryDate//text()"s,
+         track_summary: [
+           ~x"./TrackSummary",
+           event_time: ~x"./EventTime/text()",
+           event_date: ~x"./EventDate/text()",
+           attribute: ~x"./Event/text()",
+           event_city: ~x"./EventCity/text()",
+           event_state: ~x"./EventState/text()",
+           event_zipcode: ~x"./EventZIPCode/text()",
+           event_country: ~x"./EventCountry/text()",
+           firm_name: ~x"./FirmName/text()",
+           name: ~x"./Name/text()",
+           authorized_agent: ~x"./AuthorizedAgent/text()",
+           delivery_attribute_code: ~x"./DeliveryAttributeCode/text()",
+           gmt: ~x"./GMT/text()",
+           gmtoffset: ~x"./GMTOffset/text()"
+         ],
+         track_detail: [
+           ~x"./TrackDetail",
+           event_time: ~x"./EventTime/text()",
+           event_date: ~x"./EventDate/text()",
+           attribute: ~x"./Event/text()",
+           event_city: ~x"./EventCity/text()",
+           event_state: ~x"./EventState/text()",
+           event_zipcode: ~x"./EventZIPCode/text()",
+           event_country: ~x"./EventCountry/text()",
+           firm_name: ~x"./FirmName/text()",
+           name: ~x"./Name/text()",
+           authorized_agent: ~x"./AuthorizedAgent/text()",
+           delivery_attribute_code: ~x"./DeliveryAttributeCode/text()",
+           gmt: ~x"./GMT/text()",
+           gmtoffset: ~x"./GMTOffset/text()"
+         ]
+       )}
+    end
+  end
+
+  def proof_of_delivery(
+        tracking_number,
+        client_ip,
+        company_name,
+        mp_suffix,
+        mp_date,
+        request_type,
+        email
+      ) do
+    request =
+      build_proof_of_delivery_request(
+        tracking_number: tracking_number,
+        client_ip: client_ip,
+        company_name: company_name,
+        mp_suffix: mp_suffix,
+        mp_date: mp_date,
+        request_type: request_type,
+        email: email
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: "PTSPod", XML: request}) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//PTSPODRESULT",
+         result_text: ~x"./ResultText/text()",
+         return_code: ~x"./ReturnCode/text()"
+       )}
+    end
+  end
+
+  def return_receipt(
+        tracking_number,
+        track_id,
+        client_ip,
+        company_name,
+        mp_suffix,
+        mp_date,
+        request_type,
+        email,
+        table_code,
+        cust_reg_id
+      ) do
+    request =
+      build_return_receipt_request(
+        tracking_number: tracking_number,
+        track_id: track_id,
+        client_ip: client_ip,
+        company_name: company_name,
+        mp_suffix: mp_suffix,
+        mp_date: mp_date,
+        request_type: request_type,
+        email: email,
+        table_code: table_code,
+        cust_reg_id: cust_reg_id
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: "PTSRre", XML: request}) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//PTSRRERESULT",
+         result_text: ~x"./ResultText/text()",
+         return_code: ~x"./ReturnCode/text()"
+       )}
+    end
+  end
+
   def module_id() do
     :usps
   end
