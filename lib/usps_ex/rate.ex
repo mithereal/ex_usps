@@ -1,6 +1,6 @@
 defmodule UspsEx.Rate do
   @moduledoc """
-  A `Rate` is a representation of a price estimate from a given carrier for a
+  A `Rate` is a representation of a price estimate for a
   `Service`, which is typically selected by the end user for a desired shipping
   speed.
   """

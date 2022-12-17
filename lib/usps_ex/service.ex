@@ -1,36 +1,31 @@
 defmodule UspsEx.Service do
   @moduledoc """
-  A `Service` represents a carrier's offered shipping option. This is not
-  initialized by the user directly. However, some convenience functions exist
-  to display all offered carrier services to the user.
+  A `Service` represents a  shipping option.
 
   Service fields are:
 
-    * `:id`          - A unique UspsEx ID that can be used to perform lookups or fetch rates
-    * `:carrier`     - The atom representing the carrier
-    * `:code`        - Internally used by UspsEx for API requests
+    * `:id`          - A unique UspsEx ID that can be used to perform lookusps or fetch rates
     * `:description` - A user-friendly string containing the name of the service
 
   ## Example
 
-        iex> UspsEx.Service.services_for_carrier(:ups)
+        iex> UspsEx.Service.services_for_carrier(:usps)
         [
-          %UspsEx.Service{id: :ups_next_day_air, carrier: :ups, description: "UPS Next Day Air"},
-          %UspsEx.Service{id: :ups_second_day_air, carrier: :ups, description: "UPS 2nd Day Air"},
-          %UspsEx.Service{id: :ups_three_day_select, carrier: :ups, description: "UPS 3 Day Select"},
-          %UspsEx.Service{id: :ups_ground, carrier: :ups, description: "UPS Ground"}
+          %UspsEx.Service{id: :usps_next_day_air,  description: "USPS Next Day Air"},
+          %UspsEx.Service{id: :usps_second_day_air, description: "USPS 2nd Day Air"},
+          %UspsEx.Service{id: :usps_three_day_select,  description: "USPS 3 Day Select"},
+          %UspsEx.Service{id: :usps_ground,  description: "USPS Ground"}
         ]
   """
 
   alias __MODULE__, as: S
-  alias UspsEx.{Carrier, Shipment}
+  alias UspsEx.Shipment
 
-  @enforce_keys [:id, :carrier, :description]
-  defstruct [:id, :carrier, :description]
+  @enforce_keys [:id, :description]
+  defstruct [:id, :description]
 
   @type t() :: %__MODULE__{
           id: atom(),
-          carrier: Carrier.t(),
           description: String.t()
         }
 
@@ -39,74 +34,73 @@ defmodule UspsEx.Service do
   exist.
 
       iex> Service.get(:usps_priority)
-      %Service{id: :usps_priority, carrier: :usps, description: "Priority Mail"}
+      %Service{id: :usps_priority,  description: "Priority Mail"}
       iex> Service.get(:invalid_service)
       nil
   """
   @compile {:inline, get: 1}
   @spec get(atom) :: t | nil
-  def get(:ups_ground), do: %S{id: :ups_ground, carrier: :ups, description: "UPS Ground"}
+  def get(:usps_ground), do: %S{id: :usps_ground, description: "USPS Ground"}
 
-  def get(:ups_next_day_air),
-    do: %S{id: :ups_next_day_air, carrier: :ups, description: "UPS Next Day Air"}
+  def get(:usps_next_day_air),
+    do: %S{id: :usps_next_day_air, description: "USPS Next Day Air"}
 
-  def get(:ups_second_day_air),
-    do: %S{id: :ups_second_day_air, carrier: :ups, description: "UPS 2nd Day Air"}
+  def get(:usps_second_day_air),
+    do: %S{id: :usps_second_day_air, description: "USPS 2nd Day Air"}
 
-  def get(:ups_three_day_select),
-    do: %S{id: :ups_three_day_select, carrier: :ups, description: "UPS 3 Day Select"}
+  def get(:usps_three_day_select),
+    do: %S{id: :usps_three_day_select, description: "USPS 3 Day Select"}
 
-  def get(:usps_expedited), do: %S{id: :usps_expedited, carrier: :ups, description: "UPS Expedited"}
+  def get(:usps_expedited), do: %S{id: :usps_expedited, description: "USPS Expedited"}
 
   def get(:usps_express_saver),
-    do: %S{id: :usps_express_saver, carrier: :ups, description: "UPS Express Saver"}
+    do: %S{id: :usps_express_saver, description: "USPS Express Saver"}
 
-  def get(:usps_express), do: %S{id: :usps_express, carrier: :ups, description: "UPS Express"}
-  def get(:ups_standard), do: %S{id: :ups_standard, carrier: :ups, description: "UPS Standard"}
+  def get(:usps_express), do: %S{id: :usps_express, description: "USPS Express"}
+  def get(:usps_standard), do: %S{id: :usps_standard, description: "USPS Standard"}
 
-  def get(:ups_worldwide_saver),
-    do: %S{id: :ups_worldwide_saver, carrier: :ups, description: "UPS Worldwide Saver"}
+  def get(:usps_worldwide_saver),
+    do: %S{id: :usps_worldwide_saver, description: "USPS Worldwide Saver"}
 
-  def get(:ups_worldwide_expedited),
-    do: %S{id: :ups_worldwide_expedited, carrier: :ups, description: "UPS Worldwide Expedited"}
+  def get(:usps_worldwide_expedited),
+    do: %S{id: :usps_worldwide_expedited, description: "USPS Worldwide Expedited"}
 
-  def get(:ups_worldwide_express),
-    do: %S{id: :ups_worldwide_express, carrier: :ups, description: "UPS Worldwide Express"}
+  def get(:usps_worldwide_express),
+    do: %S{id: :usps_worldwide_express, description: "USPS Worldwide Express"}
 
-  def get(:usps_media), do: %S{id: :usps_media, carrier: :usps, description: "Media Mail Package"}
+  def get(:usps_media), do: %S{id: :usps_media, description: "Media Mail Package"}
 
   def get(:usps_library),
-    do: %S{id: :usps_library, carrier: :usps, description: "Library Mail Package"}
+    do: %S{id: :usps_library, description: "Library Mail Package"}
 
   def get(:usps_first_class),
-    do: %S{id: :usps_first_class, carrier: :usps, description: "First-Class Mail Package"}
+    do: %S{id: :usps_first_class, description: "First-Class Mail Package"}
 
   def get(:usps_retail_ground),
-    do: %S{id: :usps_retail_ground, carrier: :usps, description: "USPS Retail Ground"}
+    do: %S{id: :usps_retail_ground, description: "USPS Retail Ground"}
 
   def get(:usps_package_select),
-    do: %S{id: :usps_package_select, carrier: :usps, description: "Package Select Ground"}
+    do: %S{id: :usps_package_select, description: "Package Select Ground"}
 
   def get(:usps_priority),
-    do: %S{id: :usps_priority, carrier: :usps, description: "Priority Mail"}
+    do: %S{id: :usps_priority, description: "Priority Mail"}
 
   def get(:usps_priority_express),
-    do: %S{id: :usps_priority_express, carrier: :usps, description: "Priority Mail Express"}
+    do: %S{id: :usps_priority_express, description: "Priority Mail Express"}
 
   def get(:usps_priority_international),
     do: %S{
       id: :usps_priority_international,
-      carrier: :usps,
       description: "Priority Mail International"
     }
 
-  def get(:usps_gxg), do: %S{id: :usps_gxg, carrier: :usps, description: "GXG"}
+  def get(:usps_gxg), do: %S{id: :usps_gxg, description: "GXG"}
   def get(_service), do: nil
 
   @doc """
   Returns all services  based on the `shipment` provided.
 
-      UspsEx.Service.services_for_carrier(:ups)
+      UspsEx.Service.services(%Shipment{})
   """
   def services(%Shipment{to: %{country: dst}}) do
     services_to_country(dst)
@@ -123,11 +117,11 @@ defmodule UspsEx.Service do
   end
 
   defp services_to_country("US") do
-    ~w(ups_ground ups_three_day_select ups_second_day_air ups_next_day_air)a
+    ~w(usps_ground usps_three_day_select usps_second_day_air usps_next_day_air)a
   end
 
   defp services_to_country(_country) do
-    ~w(ups_standard ups_worldwide_expedited ups_worldwide_express ups_worldwide_saver)a
+    ~w(usps_standard usps_worldwide_expedited usps_worldwide_express usps_worldwide_saver)a
   end
 
   # Returns the service code used by the third-party API. Only used internally
@@ -137,17 +131,17 @@ defmodule UspsEx.Service do
   @compile {:inline, service_code: 1}
   @spec service_code(atom | t) :: String.t() | nil
   def service_code(%S{id: id}), do: service_code(id)
-  def service_code(:ups_ground), do: "03"
-  def service_code(:ups_next_day_air), do: "01"
-  def service_code(:ups_second_day_air), do: "02"
-  def service_code(:ups_three_day_select), do: "12"
+  def service_code(:usps_ground), do: "03"
+  def service_code(:usps_next_day_air), do: "01"
+  def service_code(:usps_second_day_air), do: "02"
+  def service_code(:usps_three_day_select), do: "12"
   def service_code(:usps_expedited), do: "02"
   def service_code(:usps_express_saver), do: "13"
   def service_code(:usps_express), do: "01"
-  def service_code(:ups_standard), do: "11"
-  def service_code(:ups_worldwide_saver), do: "65"
-  def service_code(:ups_worldwide_expedited), do: "08"
-  def service_code(:ups_worldwide_express), do: "07"
+  def service_code(:usps_standard), do: "11"
+  def service_code(:usps_worldwide_saver), do: "65"
+  def service_code(:usps_worldwide_expedited), do: "08"
+  def service_code(:usps_worldwide_express), do: "07"
   def service_code(:usps_media), do: "MEDIA MAIL"
   def service_code(:usps_library), do: "LIBRARY MAIL"
   def service_code(:usps_first_class), do: "FIRST CLASS"

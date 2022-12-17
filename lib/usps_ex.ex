@@ -1084,7 +1084,7 @@ defmodule UspsEx do
 
       rate = %Rate{service: service, price: price, line_items: line_items}
       image = String.replace(response.image, "\n", "")
-      label = %Label{tracking_number: response.tracking_number, format: :pdf, image: image}
+      label = %Transaction.Label{tracking_number: response.tracking_number, format: :pdf, image: image}
 
       transaction = Transaction.new(shipment, rate, label)
 

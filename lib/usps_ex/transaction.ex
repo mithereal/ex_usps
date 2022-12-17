@@ -3,7 +3,7 @@ defmodule UspsEx.Transaction do
   Defines a struct that represents billable transactions with carriers.
   """
 
-  alias UspsEx.{Transaction, Shipment, Rate, Label}
+  alias UspsEx.{Transaction, Shipment, Rate, Transaction.Label}
 
   @enforce_keys [:shipment, :rate, :label]
   defstruct [:shipment, :rate, :label]
@@ -11,12 +11,16 @@ defmodule UspsEx.Transaction do
   @type t() :: %__MODULE__{
           shipment: Shipment.t(),
           rate: Rate.t(),
-          label: nil | Label.t(),
+          label: nil | Label.t()
         }
 
   @doc false
   @spec new(Shipment.t(), Rate.t(), nil | Label.t()) :: Transaction.t()
   def new(%Shipment{} = shipment, %Rate{} = rate, label) do
     %Transaction{shipment: shipment, rate: rate, label: label}
+  end
+
+  defmodule Label do
+    defstruct [:tracking_number, :format, :image]
   end
 end
