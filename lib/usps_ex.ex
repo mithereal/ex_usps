@@ -828,6 +828,40 @@ defmodule UspsEx do
     end
   end
 
+  def scan(form, name, firm, address1, address2, city, state, zip5, zip4, close_manifest \\ false) do
+    api = "SCAN"
+
+    xml =
+      build_scan_request(
+        form: form,
+        name: name,
+        firm: firm,
+        address1: address1,
+        address2: address2,
+        city: city,
+        state: state,
+        firm: zip5,
+        firm: zip4
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: api, XML: xml}, %{
+                    "Content-Type" => "application/xml"
+                  }) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//SCANResponse",
+         scanform_number: [
+           ~x"./SCANFormNumber//",
+           scanform_image: ~x"./SCANFormImage//text()"s,
+           entry_zip_code: ~x".//@EntryZipCode",
+           ship_date: ~x".//@ShipDate",
+           ship_date: ~x".//@ShipDate"
+         ]
+       )}
+    end
+  end
+
   def zipcode(address) do
     api = "ZipCodeLookup"
     xml = build_zipcode_request(address: address)
