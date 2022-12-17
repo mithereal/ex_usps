@@ -138,7 +138,7 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//CarrierPickupScheduleResponse//Address"l,
+         ~x"//CarrierPickupScheduleResponse//Address",
          firm_name: ~x"./FirmName//text()"s,
          address1: ~x"./Address1//text()"s,
          address2: ~x"./Address2//text()"l,
@@ -171,12 +171,12 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//HFPFacilityInfoResponse"l,
+         ~x"//HFPFacilityInfoResponse",
          pickup_city: ~x"./PickupCity//text()"s,
-         pickup_state: ~x"./PickupState//text()"l,
-         pickup_zip: ~x"./PickupZIP//text()"l,
-         pickup_zip_4: ~x"./PickupZIP4//text()"l,
-         service: ~x"./Service//text()"l
+         pickup_state: ~x"./PickupState//text()"s,
+         pickup_zip: ~x"./PickupZIP//text()"s,
+         pickup_zip_4: ~x"./PickupZIP4//text()"s,
+         service: ~x"./Service//text()"s
        )}
     end
   end
@@ -224,15 +224,15 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//CarrierPickupAvailabilityResponse//Address"l,
+         ~x"//CarrierPickupAvailabilityResponse//Address",
          firm_name: ~x"./FirmName//text()"s,
          address1: ~x"./Address1//text()"s,
-         address2: ~x"./Address2//text()"l,
-         city: ~x"./City//text()"l,
-         state: ~x"./State//text()"l,
-         urbanization: ~x"./Urbanization//text()"l,
-         zip5: ~x"./Zip5//text()"l,
-         zip4: ~x"./Zip4//text()"l
+         address2: ~x"./Address2//text()"s,
+         city: ~x"./City//text()"s,
+         state: ~x"./State//text()"s,
+         urbanization: ~x"./Urbanization//text()"s,
+         zip5: ~x"./Zip5//text()"s,
+         zip4: ~x"./Zip4//text()"s
        )}
     end
   end
@@ -257,12 +257,12 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//PriorityMailResponse"l,
-         origin_zip: ~x"./OriginZip//text()"l,
-         destination_zip: ~x"./DestinationZip//text()"l,
+         ~x"//PriorityMailResponse",
+         origin_zip: ~x"./OriginZip//text()"s,
+         destination_zip: ~x"./DestinationZip//text()"s,
          days: ~x"./Days//text()"l,
-         effective_acceptance_date: ~x"./EffectiveAcceptanceDate//text()"l,
-         scheduled_delivery_date: ~x"./ScheduledDeliveryDate//text()"l
+         effective_acceptance_date: ~x"./EffectiveAcceptanceDate//text()"s,
+         scheduled_delivery_date: ~x"./ScheduledDeliveryDate//text()"s
        )}
     end
   end
@@ -288,12 +288,12 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//StandardBResponse"l,
+         ~x"//StandardBResponse",
          origin_zip: ~x"./OriginZip//text()"s,
-         destination_zip: ~x"./DestinationZip//text()"l,
-         days: ~x"./Days//text()"l,
-         effective_acceptance_date: ~x"./EffectiveAcceptanceDate//text()"l,
-         scheduled_delivery_date: ~x"./ScheduledDeliveryDate//text()"l
+         destination_zip: ~x"./DestinationZip//text()"s,
+         days: ~x"./Days//text()"s,
+         effective_acceptance_date: ~x"./EffectiveAcceptanceDate//text()"s,
+         scheduled_delivery_date: ~x"./ScheduledDeliveryDate//text()"s
        )}
     end
   end
@@ -324,10 +324,10 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//PriorityMailResponse"l,
+         ~x"//PriorityMailResponse",
          origin_zip: ~x"./OriginZip//text()"s,
-         destination_zip: ~x"./DestinationZip//text()"l,
-         mail_class: ~x"./MailClass//text()"l
+         destination_zip: ~x"./DestinationZip//text()"s,
+         mail_class: ~x"./MailClass//text()"s
        )}
     end
   end
@@ -369,7 +369,7 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//ExpressMailCommitmentResponse"l,
+         ~x"//ExpressMailCommitmentResponse",
          message: ~x"./message//text()"s
        )}
     end
@@ -441,7 +441,7 @@ defmodule UspsEx do
             [
               name: ~x"./SvcDescription//text()"s,
               service: ~x"./SvcDescription//text()"s,
-              rate: ~x"./Postage//text()"f
+              rate: ~x"./Postage//text()"s
             ]
           else
             [
@@ -521,15 +521,15 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//ZipCodeLookupResponse//Address"l,
+         ~x"//ZipCodeLookupResponse//Address",
          firm_name: ~x"./FirmName//text()"s,
          address1: ~x"./Address1//text()"s,
-         address2: ~x"./Address2//text()"l,
-         city: ~x"./City//text()"l,
-         state: ~x"./State//text()"l,
-         urbanization: ~x"./Urbanization//text()"l,
-         zip5: ~x"./Zip5//text()"l,
-         zip4: ~x"./Zip4//text()"l
+         address2: ~x"./Address2//text()"s,
+         city: ~x"./City//text()"s,
+         state: ~x"./State//text()"s,
+         urbanization: ~x"./Urbanization//text()"s,
+         zip5: ~x"./Zip5//text()"s,
+         zip4: ~x"./Zip4//text()"s
        )}
     end
   end
@@ -544,10 +544,10 @@ defmodule UspsEx do
       {:ok,
        xpath(
          body,
-         ~x"//CityStateLookupRequest//ZipCode"l,
+         ~x"//CityStateLookupRequest//ZipCode",
          zip: ~x"./Zip5//text()"s,
-         city: ~x"./City//text()"l,
-         state: ~x"./State//text()"l
+         city: ~x"./City//text()"s,
+         state: ~x"./State//text()"s
        )}
     end
   end
@@ -602,7 +602,7 @@ defmodule UspsEx do
       candidates =
         body
         |> xpath(
-          ~x"//AddressValidateResponse//Address"l,
+          ~x"//AddressValidateResponse//Address",
           address: ~x"./Address2//text()"s,
           address_line_2: ~x"./Address1//text()"s,
           city: ~x"./City//text()"s,
