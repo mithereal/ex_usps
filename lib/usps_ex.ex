@@ -30,7 +30,7 @@ defmodule UspsEx do
   alias UspsEx.Client
   alias UspsEx.Insurance
   alias UspsEx.Config
-  alias UspsEx.InvalidConfigError
+  alias UspsEx.Error
   alias UspsEx.Label
   alias UspsEx.Rate
   alias UspsEx.Service
@@ -816,10 +816,10 @@ defmodule UspsEx do
       }
     else
       {:error, :not_found, token} ->
-        raise InvalidConfigError, message: "USPS config key missing: #{token}"
+        raise Error, message: "USPS config key missing: #{token}"
 
       {:error, :not_found} ->
-        raise InvalidConfigError, message: "USPS config is either invalid or not found."
+        raise Error, message: "USPS config is either invalid or not found."
     end
   end
 
