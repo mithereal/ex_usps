@@ -1121,6 +1121,112 @@ defmodule UspsEx do
     end
   end
 
+  def return_label(
+        image_type,
+        separate_receipt_page,
+        customer_first_name,
+        customer_last_name,
+        customer_firm,
+        customer_address2,
+        customer_city,
+        customer_state,
+        customer_zip5,
+        customer_zip4,
+        po_zip_code,
+        allow_non_cleansed_origin_addr,
+        retailer_attn,
+        retailer_firm,
+        weight_in_ounces,
+        service_type,
+        width,
+        length,
+        height,
+        girth,
+        machinable,
+        customer_ref_no,
+        print_customer_ref_no,
+        customer_ref_no2,
+        print_customer_ref_no2,
+        sender_name,
+        sender_email,
+        recipient_name,
+        recipient_email,
+        tracking_email_pdf,
+        extra_services
+      ) do
+    request =
+      build_return_label_request(
+        image_type: image_type,
+        separate_receipt_page: separate_receipt_page,
+        customer_first_name: customer_first_name,
+        customer_last_name: customer_last_name,
+        customer_firm: customer_firm,
+        customer_address2: customer_address2,
+        customer_city: customer_city,
+        customer_state: customer_state,
+        customer_zip5: customer_zip5,
+        customer_zip4: customer_zip4,
+        po_zip_code: po_zip_code,
+        allow_non_cleansed_origin_addr: allow_non_cleansed_origin_addr,
+        retailer_attn: retailer_attn,
+        retailer_firm: retailer_firm,
+        weight_in_ounces: weight_in_ounces,
+        service_type: service_type,
+        width: width,
+        length: length,
+        height: height,
+        girth: girth,
+        machinable: machinable,
+        customer_ref_no: customer_ref_no,
+        print_customer_ref_no: print_customer_ref_no,
+        customer_ref_no2: customer_ref_no2,
+        print_customer_ref_no2: print_customer_ref_no2,
+        sender_name: sender_name,
+        sender_email: sender_email,
+        recipient_name: recipient_name,
+        recipient_email: recipient_email,
+        tracking_email_pdf: tracking_email_pdf,
+        extra_services: extra_services
+      )
+
+    with_response Client.post("ShippingAPI.dll", %{API: "TrackV2", XML: request}) do
+      {:ok,
+       xpath(
+         body,
+         ~x"//USPSReturnsLabelResponse",
+         barcode_number: ~x"./BarcodeNumber//text()"s,
+         label_image: ~x"./LabelImage//text()"s,
+         retailer_firm: ~x"./RetailerFirm//text()"s,
+         retailer_address1: ~x"./RetailerAddress1//text()"s,
+         retailer_address2: ~x"./RetailerAddress2//text()"s,
+         retailer_city: ~x"./RetailerCity//text()"s,
+         retailer_state: ~x"./RetailerState//text()"s,
+         retailer_zip5: ~x"./RetailerZip5//text()"s,
+         retailer_zip4: ~x"./RetailerZip4//text()"s,
+         rdc: ~x"./RDC//text()"s,
+         postage: ~x"./Postage//text()"s,
+         extra_services: [
+           ~x"./ExtraServices//ExtraService"l,
+           service_id: ~x"./ServiceID/text()",
+           service_name: ~x"./ServiceName/text()",
+           price: ~x"./Price/text()"
+         ],
+         zone: ~x"./Zone//text()"s,
+         carrier_route: ~x"./CarrierRoute//text()"s,
+         fees: [
+           ~x"./Fees//Fee"l,
+           fee_type: ~x"./FeeType/text()",
+           fee_price: ~x"./FeePrice/text()"
+         ],
+         attributes: [
+           ~x"./Attributes"l,
+           attribute: ~x"./Attribute/text()",
+           key: ~x"./Attribute/@Key"
+         ]
+       )}
+    end
+  end
+
   def module_id() do
     :usps
   end
