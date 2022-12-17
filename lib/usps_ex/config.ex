@@ -32,9 +32,6 @@ defmodule UspsEx.Config do
   end
 
   def env() do
-    case Application.get_env(:usps_ex, :env, :dev) do
-      e when e in [:dev, :prod] -> e
-      _ -> raise InvalidConfigError, "UspsEx env must be either :dev or :prod"
-    end
+    Application.get_env(:usps_ex, :env, :dev)
   end
 end

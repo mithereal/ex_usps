@@ -281,12 +281,12 @@ defmodule UspsEx.Util do
   end
 
   @typep flat_rate_container() :: %{
-    name: String.t(),
-    rate: integer(),
-    length: number(),
-    width: number(),
-    height: number()
-  }
+           name: String.t(),
+           rate: integer(),
+           length: number(),
+           width: number(),
+           height: number()
+         }
 
   def flat_rate_containers() do
     %{

@@ -8,6 +8,9 @@ defmodule UspsEx.Shipment do
   Shipments are created by `shipment/3`.
   """
 
+  @blocked_countries [:cu, :ir, :kp, :sl, :ps, :ss, :ua, :gh, :kg, :kz, :ng]
+  @high_risk_countries [:ci, :cd, :lr, :lb, :sy, :by, :iq, :zw, :sy]
+
   alias UspsEx.Shipment
 
   @enforce_keys [:from, :to, :ship_date, :parcels]
@@ -24,10 +27,23 @@ defmodule UspsEx.Shipment do
   """
   def new(from, to, parcels \\ [], opts \\ []) do
     ship_date = Keyword.get(opts, :ship_date)
-    meta = Keyword.get(opts, :meta)
+    allow_high_risk = Keyword.get(opts, :high_risk)
 
     if from.country != "US" do
       throw({:error, "UspsEx does not yet support shipments originating outside of the US."})
+    end
+
+    if Enum.member?(@blocked_countries, String.to_atom(String.downcase(to.country))) do
+      throw({:error, "Usps does not support shipments to #{to.country}."})
+    end
+
+    if allow_high_risk = nil do
+      if Enum.member?(@high_risk_countries, String.to_atom(String.downcase(to.country))) do
+        throw(
+          {:error,
+           "Usps flags #{to.country} as high risk, you must pass [high_risk: true] ex. UspsEx.Shipment.new(from, to, parcels, [high_risk: true]) ."}
+        )
+      end
     end
 
     if not (is_nil(ship_date) or match?(%Date{}, ship_date)) do
