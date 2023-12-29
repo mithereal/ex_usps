@@ -8,7 +8,7 @@ defmodule UspsEx.Address do
                    state postal_code country type)a
 
   defstruct ~w(first_name last_name name company_name phone address
-               address_line_2 address_line_3 city state postal_code country type meta valid)a
+               address_line_2 address_line_3 city state postal_code country type meta valid zip4 urbanization)a
 
   @type t() :: %__MODULE__{
           first_name: nil | String.t(),
@@ -22,9 +22,11 @@ defmodule UspsEx.Address do
           city: String.t(),
           state: String.t(),
           postal_code: String.t(),
+          zip4: String.t(),
           type: String.t(),
           valid: String.t(),
           meta: String.t(),
+          urbanization: String.t(),
           country: ISO.country_code()
         }
 
@@ -54,9 +56,11 @@ defmodule UspsEx.Address do
         state: "TX",
         type: :residential,
         postal_code: "78703",
+        zip_4: "0000",
         valid: true,
         email: nil,
-        meta: nil
+        meta: nil,
+        urbanization: ""
       })
   """
   @spec new(map()) :: {:ok, t()} | {:error, String.t()}
@@ -122,9 +126,11 @@ defmodule UspsEx.Address do
       state: state,
       type: type,
       postal_code: String.trim(params["postal_code"] || ""),
+      zip4: String.trim(params["zip_4"] || ""),
       country: country,
       valid: nil,
-      meta: nil
+      meta: nil,
+      urbanization: String.trim(params["urbanization"] || "")
     }
 
     # Check for a passed array.
@@ -159,9 +165,7 @@ defmodule UspsEx.Address do
   end
 
   @doc false
-  def validate(%__MODULE__{} = address, opts) do
-    carrier = Keyword.get(opts, :carrier, :usps)
-
+  def validate(%__MODULE__{} = address, _opts) do
     case address.country do
       "US" ->
         UspsEx.validate_address(address)

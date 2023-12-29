@@ -202,9 +202,6 @@ defmodule UspsEx.Util do
   def international?(country),
     do: not domestic?(country)
 
-  def international?(_),
-    do: false
-
   def country(%{country: code}) do
     country(code)
   end
@@ -251,7 +248,7 @@ defmodule UspsEx.Util do
           kgs_to_lbs(data)
 
         u ->
-          {:error, "Invalid unit of measurement specified"}
+          {:error, "Invalid unit of measurement specified: #{u}"}
       end
   end
 
@@ -279,14 +276,6 @@ defmodule UspsEx.Util do
     |> HtmlEntities.decode()
     |> String.replace(~r/<\/?\w+>.*<\/\w+>/, "")
   end
-
-  @typep flat_rate_container() :: %{
-           name: String.t(),
-           rate: integer(),
-           length: number(),
-           width: number(),
-           height: number()
-         }
 
   def flat_rate_containers() do
     %{

@@ -21,7 +21,7 @@
       <OriginZip><%= @shipment.from.postal_code %></OriginZip>
       <%= if package.insurance do %>
         <ExtraServices>
-          <ExtraService><%= insurance_code(@shipment, @service) %></ExtraService>
+          <ExtraService><InsuredAmount><%= package.insurance.value %></InsuredAmount></ExtraService>
         </ExtraServices>
       <% end %>
     </Package>
@@ -43,9 +43,14 @@
   <Length><%= package.length %></Length>
   <Height><%= package.height %></Height>
   <Girth><%= package.girth %></Girth>
-  <Value><%= price_to_dollars(package.insurance || package.monetary_value) %></Value>
+  <Value><%= price_to_dollars(package.insurance.value || package.monetary_value) %></Value>
   <%= if package.insurance do %>
-  <SpecialServices><SpecialService><%= insurance_code(@shipment, @service) %></SpecialService></SpecialServices>
+  <SpecialServices>
+  <SpecialService> <%=  package.insurance.id  %></SpecialService>
+  <%= if package.insurance.pricing_and_availability do  %>
+  <SpecialService><%= service_code(:pricing_and_availability) %></SpecialService>
+  <% end %>
+  </SpecialServices>
   <% end %>
   <Machinable><%= machineable?(package, container(package) , machinable) %></Machinable>
   </Package>

@@ -37,7 +37,7 @@ defmodule UspsEx.Shipment do
       throw({:error, "Usps does not support shipments to #{to.country}."})
     end
 
-    if allow_high_risk = nil do
+    if allow_high_risk == nil do
       if Enum.member?(@high_risk_countries, String.to_atom(String.downcase(to.country))) do
         throw(
           {:error,

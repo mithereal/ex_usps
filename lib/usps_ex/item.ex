@@ -20,7 +20,7 @@ defmodule UspsEx.Item do
           description: nil | String.t(),
           monetary_value: nil | integer(),
           weight: nil | number(),
-          quantity: nil | number(),
+          quantity: nil | number()
         }
 
   @doc """

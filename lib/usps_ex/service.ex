@@ -4,7 +4,7 @@ defmodule UspsEx.Service do
 
   Service fields are:
 
-    * `:id`          - A unique UspsEx ID that can be used to perform lookusps or fetch rates
+    * `:id`          - A unique UspsEx ID that can be used to perform lookups or fetch rates
     * `:description` - A user-friendly string containing the name of the service
 
   ## Example
@@ -95,6 +95,10 @@ defmodule UspsEx.Service do
     }
 
   def get(:usps_gxg), do: %S{id: :usps_gxg, description: "GXG"}
+
+  def get(:pricing_and_availability),
+    do: %S{id: :pricing_and_availability, description: "Pricing and Availability"}
+
   def get(_service), do: nil
 
   @doc """
@@ -112,17 +116,17 @@ defmodule UspsEx.Service do
     ~w(usps_media usps_library usps_first_class usps_retail_ground usps_package_select usps_priority usps_priority_express)a
   end
 
-  defp services_to_country(_country) do
-    ~w(usps_first_class usps_priority usps_priority_express usps_gxg)a
-  end
+  #  defp services_to_country(_country) do
+  #    ~w(usps_first_class usps_priority usps_priority_express usps_gxg)a
+  #  end
+  #
+  #  defp services_to_country("US") do
+  #    ~w(usps_ground usps_three_day_select usps_second_day_air usps_next_day_air)a
+  #  end
 
-  defp services_to_country("US") do
-    ~w(usps_ground usps_three_day_select usps_second_day_air usps_next_day_air)a
-  end
-
-  defp services_to_country(_country) do
-    ~w(usps_standard usps_worldwide_expedited usps_worldwide_express usps_worldwide_saver)a
-  end
+  #  defp services_to_country(_country) do
+  #    ~w(usps_standard usps_worldwide_expedited usps_worldwide_express usps_worldwide_saver)a
+  #  end
 
   # Returns the service code used by the third-party API. Only used internally
   # for API requests.
@@ -151,4 +155,5 @@ defmodule UspsEx.Service do
   def service_code(:usps_priority_express), do: "PRIORITY EXPRESS"
   def service_code(:usps_priority_international), do: "PRIORITY INTERNATIONAL"
   def service_code(:usps_gxg), do: "GXG"
+  def service_code(:pricing_and_availability), do: "183"
 end

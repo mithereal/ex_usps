@@ -1,7 +1,7 @@
 defmodule UspsEx.MixProject do
   use Mix.Project
 
-  @version "1.33.0"
+  @version "2023.1.27"
   @source_url "https://github.com/mithereal/ex_usps"
 
   def project do
@@ -14,7 +14,8 @@ defmodule UspsEx.MixProject do
       description: description(),
       package: package(),
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      source_url: @source_url
     ]
   end
 
@@ -64,9 +65,6 @@ defmodule UspsEx.MixProject do
 
   defp docs do
     [
-      main: "usps_ex",
-      source_url: @source_url,
-      extras: ["README.md"]
     ]
   end
 end

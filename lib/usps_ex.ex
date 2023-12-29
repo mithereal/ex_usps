@@ -11,17 +11,12 @@ defmodule UspsEx do
 
   import UspsEx.Util,
     only: [
-      state_without_country: 1,
       price_to_cents: 1,
       international?: 1,
       create_hash: 1,
       create_hash: 2,
       weight_in_ounces: 1,
-      services_country?: 1,
-      domestic?: 1,
       country: 1,
-      containers: 0,
-      flat_rate_containers: 0,
       container: 1,
       size: 1,
       strip_html: 1,
@@ -31,14 +26,13 @@ defmodule UspsEx do
   alias UspsEx.Client
   alias UspsEx.Config
   alias UspsEx.Error
-  alias UspsEx.Label
   alias UspsEx.Rate
   alias UspsEx.Service
   alias UspsEx.Package
   alias UspsEx.Util
 
   for f <-
-        ~w(address cancel carrier_pickup_availability city_state_by_zipcode express_mail_commitments first_class_service_standards hold_for_pickup package_pickup_cancel package_pickup_change package_pickup_inquery package_pickup_schedule package_service_standardb priority_mail_service_standards proof_of_delivery return_label return_receipt label rate scan sdc_get_locations sunday_holiday track track_confirm_by_email track_fields validate_address zipcode)a do
+        ~w(address cancel carrier_pickup_availability city_state_by_zipcode express_mail_commitments first_class_service_standards hold_for_pickup package_pickup_cancel package_pickup_change package_pickup_inquery package_pickup_schedule package_service_standardb priority_mail_service_standards proof_of_delivery return_label return_receipt label rate scan sdc_get_locations sunday_holiday track track_confirm_by_email po_locator track_fields validate_address zipcode)a do
     EEx.function_from_file(
       :defp,
       :"build_#{f}_request",
@@ -95,7 +89,7 @@ defmodule UspsEx do
         non_emdest_type
       ) do
     api = "SDCGetLocations"
-
+    # api = "CarrierPickupSchedule"
     xml =
       build_sdc_get_locations_request(
         mail_class: mail_class,
@@ -437,7 +431,7 @@ defmodule UspsEx do
         zip4,
         urbanization \\ nil
       ) do
-    api = "CarrierPickupAvailability"
+    api = "CarrierPickupChange"
 
     xml =
       build_package_pickup_change_request(
@@ -726,6 +720,9 @@ defmodule UspsEx do
       "FALSE"
     end
   end
+
+  def service_code(id), do: UspsEx.Service.service_code(id)
+  def insurance_code(id), do: UspsEx.Insurance.code(id)
 
   def fetch_rate(shipment, service) do
     service =
@@ -1084,7 +1081,12 @@ defmodule UspsEx do
 
       rate = %Rate{service: service, price: price, line_items: line_items}
       image = String.replace(response.image, "\n", "")
-      label = %Transaction.Label{tracking_number: response.tracking_number, format: :pdf, image: image}
+
+      label = %Transaction.Label{
+        tracking_number: response.tracking_number,
+        format: :pdf,
+        image: image
+      }
 
       transaction = Transaction.new(shipment, rate, label)
 
@@ -1153,7 +1155,7 @@ defmodule UspsEx do
     Enum.map(rates, fn rate -> add_line_items(rate, shipment, service) end)
   end
 
-  defp add_line_items(rate, shipment, service) do
+  defp add_line_items(rate, shipment, _service) do
     postage_line_item = %{name: "Postage", price: rate.rate}
 
     insurance_line_item =
@@ -1166,7 +1168,7 @@ defmodule UspsEx do
             %{name: "Insurance", price: rate.insurance_fee}
 
           true ->
-            insurance_code = Integer.to_string(insurance_code(shipment, service))
+            insurance_code = Integer.to_string(package.insurance.code)
 
             rate.extra_services
             |> Enum.find(fn
@@ -1192,9 +1194,6 @@ defmodule UspsEx do
 
     Map.put(rate, :line_items, line_items)
   end
-
-  def insurance_code(shipment, service),
-    do: insurance_code(international?(shipment), service)
 
   def track_packages(tracking_number) when is_binary(tracking_number) do
     track_packages([tracking_number])
@@ -1318,7 +1317,7 @@ defmodule UspsEx do
         extra_services: extra_services
       )
 
-    with_response Client.post("ShippingAPI.dll", %{API: "TrackV2", XML: request}) do
+    with_response Client.post("ShippingAPI.dll", %{API: "USPSReturnsLabel", XML: request}) do
       {:ok,
        xpath(
          body,

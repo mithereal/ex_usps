@@ -28,7 +28,7 @@ defmodule UspsEx.Package do
   alias UspsEx.Item
 
   @enforce_keys [:length, :width, :height, :weight, :items, :monetary_value, :description]
-  @fields ~w(length width height weight girth container insurance monetary_value description items distance_unit mass_unit meta extra)a
+  @fields ~w(length width height weight girth container insurance monetary_value description items distance_unit mass_unit meta extra pricing_and_availability)a
   defstruct @fields
 
   @type t() :: %__MODULE__{
@@ -40,10 +40,10 @@ defmodule UspsEx.Package do
           mass_unit: atom(),
           monetary_value: number(),
           girth: nil | number(),
-          meta: nil | string(),
-          extra: nil | string(),
+          meta: nil | String.t(),
+          extra: nil | String.t(),
           container: nil | atom() | String.t(),
-          insurance: nil | number(),
+          insurance: nil | Map.t(),
           description: nil | String.t(),
           items: [Item.t()]
         }
@@ -103,7 +103,8 @@ end
 
 defmodule UspsEx.Package.Extras do
   defstruct cod: nil,
-            insurance: nil
+            insurance: nil,
+            pricing_and_availability: nil
 end
 
 defmodule UspsEx.Package.Extras.Cod do

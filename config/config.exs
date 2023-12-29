@@ -14,9 +14,8 @@ env = System.get_env("MIX_ENV", "dev")
 
 config :usps_ex,
   env: String.to_atom(env),
-username: "401DATAT0093",
-password: "088HE84QE916"
-
+  username: "401DATAT0093",
+  password: "088HE84QE916"
 
 #
 # And access this configuration in your application as:

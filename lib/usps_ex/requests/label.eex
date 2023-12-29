@@ -1,10 +1,11 @@
 <% username = config().username %>
+<% password = config().password %>
 <% agreement = Map.get(config(), :agreement, "Y") %>
 <% image_type = Map.get(config(), :image_type, "PDF") %>
 <% content_type = Map.get(config(), :content_type, "MERCHANDISE") %>
 <% destination_rate_indicator = Map.get(config(), :destination_rate_indicator, "N") %>
 <% address_service_requested = Map.get(config(), :address_service_requested, "true") %>
-<<%= @api %>Request USERID='<%= username %>'>
+<<%= @api %>Request USERID='<%= username %>'> PASSWORD='<%= password %>'>
   <%= if international?(@shipment) do %>
     <Revision>2</Revision>
     <%= build_address_request shipment: @shipment, address: @shipment.from %>
@@ -73,7 +74,7 @@
 
     <%= if is_integer(package.insurance) and package.insurance > 0 do %>
       <ExtraServices>
-        <ExtraService><%= insurance_code(@shipment, @service) %></ExtraService>
+         <ExtraService><InsuredAmount><%= package.insurance.amount %></InsuredAmount></ExtraService>
       </ExtraServices>
     <% end %>
 

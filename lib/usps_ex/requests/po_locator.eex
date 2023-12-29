@@ -1,0 +1,36 @@
+<% username = config().username %>
+<% password = config().password %>
+<POLocatorV2ExtRequest USERID='<%= username %>' PASSWORD='<%= password %>'>
+<Revision>1</Revision>
+<%= if @name do %>
+<FirmName><%= @name %></FirmName>
+<% end %>
+<%= if @line1 do %>
+<Address2><%= @address2 %></Address2>
+<% end %>
+<%= if @address1 do %>
+<Address1><%= @address1 %></Address1>
+<% end %>
+<City><%= @city %></City>
+<State><%= @state %></State>
+<Radius><%= @radius %></Radius>
+<MaxLocations><%= @max %></MaxLocations>
+<Filters>
+<%= if @facility_type do %>
+<FacilityType><%= @facility_type %></FacilityType>
+<% end %>
+<%= if @service do %>
+<Service><%= @service %></Service>
+<% end %>
+<%= if @hours do %>
+<Hours><%= @hours %></Hours>
+<% end %>
+</Filters>
+<Zip5><%= @postal_code %></Zip5>
+<%= if @zip4 do %>
+<Zip4><%= @zip4 %></Zip4>
+<% end %>
+<%= if @urbanization do %>
+<Urbanization><%= @urbanization %></Urbanization>
+<% end %>
+</POLocatorV2ExtRequest>
