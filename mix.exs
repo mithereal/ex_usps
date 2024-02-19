@@ -65,6 +65,9 @@ defmodule UspsEx.MixProject do
 
   defp docs do
     [
+      main: "UspsEx",
+      source_url: @source_url,
+      extras: ["README.md"]
     ]
   end
 end
