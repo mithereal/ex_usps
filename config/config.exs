@@ -17,6 +17,13 @@ config :usps_ex,
   username: "401DATAT0093",
   password: "088HE84QE916"
 
+config :oapi_generator, default: [
+  output: [
+    base_module: UspsEx.Scan,
+    location: "lib/usps_ex/scan"
+  ]
+]
+
 #
 # And access this configuration in your application as:
 #

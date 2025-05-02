@@ -1,0 +1,1096 @@
+openapi: 3.0.1
+info:
+  title: Subscriptions - Adjustments
+  description: |
+    Contact Us: [USPS API Support](https://emailus.usps.com/s/web-tools-inquiry) | [Terms of Service](https://about.usps.com/termsofuse.htm)
+    
+    The Subscriptions-Adjustments API enables users to create a subscription to receive USPS Ship adjustments by Customer Registration ID.  Users can manage all adjustment subscriptions, in one place, by providing your server URL and parse the adjustment data received on the server URL.
+    
+    Security for the API traffic is provided through IP whitelisting and HMAC. Both of these options are optional. For IP whitelisting, configure your endpoint to only receive traffic from USPS IP addresses. For HMAC, provide a secret in the subscription request that we use to hash the payload using the SHA-256 algorithm. The hash is available as part of the notification subscribers receive.
+
+  version: 3.1.2
+servers:
+- url: https://apis.usps.com/subscriptions-adjustments/v3
+  description: Production Environment Endpoint
+- url: https://apis-tem.usps.com/subscriptions-adjustments/v3
+  description: Testing Environment Endpoint
+paths:
+  /subscriptions:
+    get:
+      tags:
+      - Resources
+      summary: Get list of all Subscriptions.
+      description: "Get list of all Adjustment Subscriptions you have created, by CRID"
+      operationId: get-subscriptions-adjustment
+      parameters:
+      - name: CRID
+        in: query
+        description: Filter by CRID. Comma separated list of values.
+        required: true
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: offset
+        in: query
+        description: The number of items to skip before returning the results
+        schema:
+          minimum: 0
+          type: integer
+      - name: limit
+        in: query
+        description: The number of items to return
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: This will return a list of subscription IDs based on the parameters given.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptions:
+                    $ref: '#/components/schemas/Subscriptions'
+                  metadata:
+                    $ref: '#/components/schemas/PaginationMetadata'
+                additionalProperties: false
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  subscriptions:
+                    $ref: '#/components/schemas/Subscriptions'
+                  metadata:
+                    $ref: '#/components/schemas/PaginationMetadata'
+                additionalProperties: false
+        "400":
+          description: Invalid label request information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amout of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: An unknown error has occurred.
+          content: {}
+      security:
+      - OAuth:
+        - subscriptions-adjustments
+    post:
+      tags:
+      - Resources
+      summary: Create a Subscription.
+      description: Create a Subscription to Adjustment Events Topic. A subscription can be created for a Customer Registration ID and you can specify what type of adjustment events you want to receive.
+      operationId: post-subscriptions-adjustment
+      requestBody:
+        description: The input parameters corresponding to the supported grant types.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustmentSubscription'
+            examples:
+              MID-Subscription:
+                $ref: '#/components/examples/Subscription'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/AdjustmentSubscription'
+        required: true
+      responses:
+        "201":
+          description: Subscription Created
+          headers:
+            Location:
+              description: The URL to the newly created resource.
+              style: simple
+              explode: false
+              schema:
+                type: string
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdjustmentSubscription'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/AdjustmentSubscription'
+        "400":
+          description: Invalid request information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amount of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+      security:
+      - OAuth:
+        - subscriptions-adjustments
+  /subscriptions/{subscriptionId}:
+    get:
+      tags:
+      - Resources
+      summary: Get a Subscription by ID.
+      description: Get a previously created subscription by its unique id.
+      operationId: get-subscriptions-adjustment-id
+      parameters:
+      - name: subscriptionId
+        in: path
+        description: The unique identifier of the subscription.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: This will return the unique subscription.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdjustmentSubscription'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/AdjustmentSubscription'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amount of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+      security:
+      - OAuth:
+        - subscriptions-adjustments
+    put:
+      tags:
+      - Resources
+      summary: Edit Subscription by ID.
+      description: "Use this endpoint to update the callback url, secret, or status.  If filter properties need to change, a new subscription needs to be created."
+      operationId: put-subscriptions-adjustment-id
+      parameters:
+      - name: subscriptionId
+        in: path
+        description: The unique identifier of the subscription.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: If-Match
+        in: header
+        description: The value of the entity tag indicating the version of the resource to get or update. All DELETE and PUT operations require an ETag to be supplied as the If-Match parameter.  The ETag is returned in the GET operation and is good for one hour or until it is used in a DELETE or PUT operation.
+        required: true
+        schema:
+          type: string
+          example: 33a64df551425fcc55e4d42a148795d9f25f89d4
+      requestBody:
+        description: The input parameters corresponding to the supported grant types.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustmentSubscription'
+            examples:
+              Subscription-list:
+                $ref: '#/components/examples/Subscription'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/AdjustmentSubscription'
+        required: true
+      responses:
+        "200":
+          description: Subscription updated.
+          headers:
+            Content-Type:
+              description: The media type of the response.
+              style: simple
+              explode: false
+              schema:
+                type: string
+                default: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdjustmentSubscription'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/AdjustmentSubscription'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amout of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+      security:
+      - OAuth:
+        - subscriptions-adjustments
+    delete:
+      tags:
+      - Resources
+      summary: Delete a Subscription by ID.
+      description: Use this endpoint to delete a Subscription by its unique identifier.
+      operationId: delete-subscriptions-adjustment-id
+      parameters:
+      - name: subscriptionId
+        in: path
+        description: The unique identifier of the subscription.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: If-Match
+        in: header
+        description: The value of the entity tag indicating the version of the resource to get or update. All DELETE and PUT operations require an ETag to be supplied as the If-Match parameter.  The ETag is returned in the GET operation and is good for one hour or until it is used in a DELETE or PUT operation.
+        required: true
+        schema:
+          type: string
+          example: 33a64df551425fcc55e4d42a148795d9f25f89d4
+      responses:
+        "204":
+          description: Subscription Deleted (no content)
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amout of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+      security:
+      - OAuth:
+        - subscriptions-adjustments
+  /notifications:
+    post:
+      tags:
+      - Listener URL Specification
+      summary: Notification event in which the API caller should implement.
+      description: |
+        Notification event API callers implement to receive adjustment event data. This is the url in which data will be pushed to.
+
+        Each subscriptions notification response contains a field named `payload` which is a JavaScript object that has been converted into a JSON formatted string. The text should be converted into a JavaScript object via JSON.parse(). The JavaScript object notation (JSON) schemas are provided in the API specification.
+      operationId: post-notification
+      parameters:
+      - name: X-HMAC
+        in: header
+        description: "If a secret was provided with the subscription, this field will contain an HMAC hash encoded in Base64.  To compute the same hash for comparison,  concatenate the value of the timestamp field and the value of the payload field, hash the concatenated string using the shared secret and the SHA256 hash function, and encode the output in Base64.  The result should match the value of the X-HMAC Http header.  "
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustmentNotification'
+        required: true
+      responses:
+        "200":
+          description: Success
+          headers:
+            Content-Type:
+              description: The media type of the response.
+              style: simple
+              explode: false
+              schema:
+                type: string
+                default: application/json
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amout of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+      security:
+      - OAuth: []
+components:
+  schemas:
+    AdjustmentSubscription:
+      title: Subscription
+      description: Subscription for the adjustment event data the consumer is receiving.
+      allOf:
+      - $ref: '#/components/schemas/Subscription'
+      - required:
+        - filterProperties
+        - listenerURL
+        - secret
+        type: object
+        properties:
+          subscriptionType:
+            type: string
+            description: The subscription type defines the data domain for this subscription.
+            readOnly: true
+            enum:
+            - ADJUSTMENT
+          filterProperties:
+            $ref: '#/components/schemas/CRIDAdjustmentFilter'
+    Subscriptions:
+      title: Subscription List
+      type: array
+      description: List of subscriptions
+      items:
+        $ref: '#/components/schemas/AdjustmentSubscription'
+    AdjustmentNotification:
+      title: Subscription Event
+      additionalProperties: false
+      description: Subscription Event
+      allOf:
+      - $ref: '#/components/schemas/Notification'
+      - type: object
+        properties:
+          payload:
+            type: string
+            description: Tracking subscription details converted into a JSON formatted string.
+            example: |
+              "{\"subscriptionId\":\"12345678\",\"subscriptionType\":\"Premium\",\"timestamp\":\"2025-03-03T13:05:30.988Z\",\"links\":[{\"rel\":[\"self\"],\"title\":\"Tracking Info\",\"href\":\"https://api.example.com/tracking/920011234561234567890\",\"method\":\"GET\",\"submissionMediaType\":\"application/json\",\"targetMediaType\":\"application/json\"}],\"payload\":{\"trackingNumber\":\"920011234561234567890\",\"manifestNumber\":\"927501234561234567899\",\"rootCause\":[\"WEIGHT\"],\"pricingCharacteristics\":[{\"pricingCharacteristic\":\"WEIGHT\",\"claimed\":\"2 lbs\",\"assessed\":\"3 lbs\"}],\"USPSPackagingBarcode\":\"123456789012\",\"packaging\":\"Box\",\"postageAdjustment\":4.78,\"totalPostage\":{\"claimed\":7.64,\"assessed\":12.42},\"basePostage\":{\"claimed\":7.64,\"assessed\":8.42},\"fees\":[{\"name\":\"Nonstandard Dimension: Length > 22\",\"claimedPostage\":0,\"assessedPostage\":4}],\"accountNumber\":\"123456789\",\"transactionID\":\"123456789\",\"earliestScanDate\":\"2025-03-03T13:05:30.988Z\",\"MID\":\"123456789\",\"CRID\":\"123456789\",\"adjustmentStatus\":\"PENDING\"}}"
+    PaginationMetadata:
+      title: Pagination Metadata
+      required:
+      - limit
+      - offset
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          description: Total number of resources return in the API request.
+          example: 140
+        page:
+          type: integer
+          description: The current page number.
+          example: 3
+        totalPages:
+          type: integer
+          description: "Total number of pages, based on the user provided limit and [totalCount]"
+          example: 7
+        limit:
+          type: integer
+          description: "The number of resources returned per call, based on the user provided limit"
+          example: 20
+        offset:
+          type: integer
+          description: "The current offset, based on the user provided offset"
+          example: 40
+        links:
+          $ref: '#/components/schemas/Links'
+      additionalProperties: false
+      description: Standard error message response.
+    Links:
+      title: Hypermedia Links
+      type: array
+      description: Hypermedia links to related resources.
+      items:
+        required:
+        - href
+        - rel
+        type: object
+        properties:
+          rel:
+            type: array
+            description: The short name(s) of the relationship corresponding to the link.
+            items:
+              type: string
+          title:
+            type: string
+            description: A human-readable description of the link relationship.
+          href:
+            type: string
+            description: The URL to a related resource.
+            format: uri
+          method:
+            type: string
+            description: The HTTP method to use to access this link.
+            enum:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+          submissionMediaType:
+            type: string
+            description: The media type of the resource request.
+          targetMediaType:
+            type: string
+            description: The media type of the resource response.
+        additionalProperties: false
+    ErrorMessage:
+      title: Error
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          description: The version of the API that was used and that raised the error.
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: The error status code that has been returned in response to the request.
+            message:
+              type: string
+              description: A human-readable message describing the error.
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: The status code response returned to the client.
+                  code:
+                    type: string
+                    description: An internal subordinate code used for error diagnosis.
+                  title:
+                    type: string
+                    description: A human-readable title that identifies the error.
+                  detail:
+                    type: string
+                    description: A human-readable description of the error that occurred.
+                  source:
+                    type: object
+                    properties:
+                      parameter:
+                        type: string
+                        description: The input in the request which caused an error.
+                      example:
+                        type: string
+                        description: An example of a valid value for the input parameter.
+                    additionalProperties: true
+                    description: The element that is suspected of originating the error.  Helps to pinpoint the problem.
+                additionalProperties: true
+          additionalProperties: true
+          description: The high-level error that has occurred as indicated by the status code.
+      additionalProperties: true
+      description: Standard error message response.
+    Subscription:
+      title: Subscription
+      required:
+      - adminNotification
+      - filterProperties
+      - listenerURL
+      - secret
+      type: object
+      properties:
+        subscriptionId:
+          type: string
+          description: Unique Identifier created for this Subscription.
+          readOnly: true
+        listenerURL:
+          type: string
+          description: "Customer url in which subscription data will be sent. You can parse the data received on the server URL, and you can call back to the tracking api for the full detailed set of events."
+          format: uri
+          example: https://myserver.com/listener
+        secret:
+          maxLength: 32
+          minLength: 32
+          type: string
+          description: Customer supplied secret USPS will use to create a hash value.  The hash will be provided in the Notification payload. USPS will use the SHA-256 algorithm to create the hash value.
+        status:
+          type: string
+          description: "Current status of the subscription.  USPS will post notifications to the supplied listenerURL.  If the listenerURL cannot be reached or is invalid, USPS will change the status of the subscription to SUSPENDED.  The customer has the option of changing the status to DISABLED.  It is recommended the customer change the status to DISABLED if they know their endpoint will not be active, i.e operational maintenance."
+          enum:
+          - DISABLED
+          - ENABLED
+          - SUSPENDED
+        statusReason:
+          type: string
+          description: When status is suspended the Status Reason will return why it was suspended
+          readOnly: true
+          example: Unable to reach listener
+        adminNotification:
+          maxItems: 3
+          minItems: 1
+          type: array
+          description: Customer can supply an email address to receive important updates on the status and events related to the subscription.
+          items:
+            $ref: '#/components/schemas/EmailNotification'
+        creationTimestamp:
+          type: string
+          description: When the subscription was originally created.
+          format: date-time
+          readOnly: true
+        statusChangeTimestamp:
+          type: string
+          description: Time when the status was last changed
+          format: date-time
+          readOnly: true
+        expirationTimestamp:
+          type: string
+          description: When the subscription expires.
+          format: date-time
+          readOnly: true
+      additionalProperties: true
+      description: Subscription for the tracking event data the consumer is receiving.
+    EmailNotification:
+      type: object
+      properties:
+        email:
+          maxLength: 50
+          type: string
+          description: 'E-mail address of recipient. Valid e-mail addresses must be used used for notifications via email. '
+          format: email
+    CRIDAdjustmentFilter:
+      title: Adjustment Subscription
+      type: object
+      properties:
+        CRID:
+          type: string
+          description: "Specify the Customer Registration ID that should be included in the subscription. Once a subscription is created this field cannot be changed through a future edit, instead the subscription should be deleted and a new subscription should be created."
+        eventTypes:
+          type: array
+          description: "Specify what adjustment events should be include in the subscription: </p>\nALL                        - All Below Updates </p>\nCENSUS                     - Adjustments where package characteristics are captured during network processing that do \n                             not align with the manifested characteristics and lead to differences in manifested vs expected payments.\nDUPLICATES                 - Adjustments where multiple packages are shipped with the same barcode without corresponding \n                             payment records for secondary packages.\nUNMANIFESTED               - Adjustments where packages are accepted and delivered without corresponding \n                             payment records for the packages."
+          items:
+            type: string
+            enum:
+            - ALL
+            - CENSUS
+            - DUPLICATES
+            - UNMANIFESTED
+          default:
+          - ALL
+      description: The filters that should be applied to the subscription. The structure of this property will change dependent on the type of subscription a client is signing up for.
+    Notification:
+      title: Subscription Event
+      type: object
+      properties:
+        subscriptionId:
+          type: string
+          description: Unique identifier created for this Subscription
+        subscriptionType:
+          type: string
+          description: The name of the topic related to this event.
+        timestamp:
+          type: string
+          description: "Timestamp message was generated, in ISO-8601 format."
+          format: date-time
+        links:
+          $ref: '#/components/schemas/Links'
+      additionalProperties: true
+      description: Subscription Event
+    AdjustmentDetails:
+      type: object
+      properties:
+        trackingNumber:
+          type: string
+          description: The trackingNumber of the package.
+          example: "920011234561234567890"
+        manifestNumber:
+          type: string
+          description: The manifest number (or electronic file number/EFN) of the package.
+          example: "927501234561234567899"
+        rootCause:
+          type: array
+          description: Array of root causes that contributed to the adjustment
+          items:
+            type: string
+            enum:
+            - WEIGHT
+            - DIMENSIONS
+            - PACKAGING
+            - ZONE
+            - MIS-SHIPPED
+            - UNMANIFESTED
+            - DUPLICATE
+        pricingCharacteristics:
+          type: array
+          items:
+            type: object
+            properties:
+              pricingCharacteristic:
+                type: string
+                description: |-
+                  | Enumeration | Format | Example |
+                  | -- | -- | -- |
+                  | WEIGHT | number | 4.1 |
+                  | DIM_WEIGHT | number | 11.8 |
+                  | LENGTH | number | 8.6 |
+                  | WIDTH | number | 4.2 |
+                  | HEIGHT | number | 3.5 |
+                  | ORIGIN_ZIP_CODE | string | 20260 |
+                  | DESTINATION_ZIP_CODE | string | 20260 |
+                  | ZONE | string | 01 |
+                  | DESTINATION_ENTRY_FACILITY_TYPE | string | Temp |
+                  | RATE_INDICATOR | string | SP |
+                  | MAIL_CLASS | string | PRIORITY_MAIL |
+                enum:
+                - WEIGHT
+                - DIM_WEIGHT
+                - LENGTH
+                - WIDTH
+                - HEIGHT
+                - ORIGIN_ZIP_CODE
+                - DESTINATION_ZIP_CODE
+                - ZONE
+                - DESTINATION_ENTRY_FACILITY_TYPE
+                - RATE_INDICATOR
+                - MAIL_CLASS
+              claimed:
+                type: string
+              assessed:
+                type: string
+        USPSPackagingBarcode:
+          type: string
+          description: USPS Packaging used for the shipment
+        packaging:
+          type: string
+          maxLength: 31
+          description: |
+            Description of the packaging
+          enum:
+            - APO_FPO_DPO_LARGE_FLAT_RATE_BOX
+            - CUBIC_TIER_1  
+            - CUBIC_TIER_2  
+            - CUBIC_TIER_3  
+            - CUBIC_TIER_4  
+            - CUBIC_TIER_5  
+            - FLAT_RATE_ENVELOPE  
+            - GIFT_CARD_FLAT_RATE_ENVELOPE  
+            - LARGE_FLAT_RATE_BOX  
+            - LEGAL_FLAT_RATE_ENVELOPE  
+            - MEDIUM_FLAT_RATE_BOX  
+            - PADDED_FLAT_RATE_ENVELOPE  
+            - REGIONAL_RATE_BOX_A  
+            - REGIONAL_RATE_BOX_B  
+            - SMALL_FLAT_RATE_BOX  
+            - SMALL_FLAT_RATE_ENVELOPE  
+            - WINDOW_FLAT_RATE_ENVELOPE 
+        postageAdjustment:
+          type: number
+          description: The postage charged for the adjustment
+          format: double
+          example: 4.78
+        totalPostage:
+          type: object
+          properties:
+            claimed:
+              type: number
+              format: double
+              example: 7.64
+            assessed:
+              type: number
+              format: double
+              example: 12.42
+          description: The claimed and assessed total postage for the package.
+        basePostage:
+          type: object
+          properties:
+            claimed:
+              type: number
+              format: double
+              example: 7.64
+            assessed:
+              type: number
+              format: double
+              example: 8.42
+          description: The claimed and assessed base postage for the package (minus fees and extra services).
+        fees:
+          type: array
+          description: The claimed and assessed fees for the package.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                enum:
+                - "Nonstandard Dimension: Length > 22"
+                - "Nonstandard Dimension: Length > 30"
+                - "Nonstandard Dimension: Volume > 2 cubic feet"
+                - "Nonstandard Dimension: Non-Compliance"
+              claimedPostage:
+                type: number
+                format: double
+                example: 0
+              assessedPostage:
+                type: number
+                format: double
+                example: 4
+        accountNumber:
+          type: string
+          description: The Enterprise Payment Account the adjustment was charged to.
+        transactionID:
+          type: string
+          description: The Enterprise Payment System Transaction ID the adjustment was charged to.
+        earliestScanDate:
+          type: string
+          description: Earliest Datetime USPS scanned the package.
+          format: date-time
+        MID:
+          pattern: "^(\\d{6}|\\d{9})$"
+          type: string
+          description: Mailer ID used in the barcode to identify the Mail Owner associated to a shipment.
+        CRID:
+          maxLength: 15
+          minLength: 8
+          type: string
+          description: Customer Registration ID used to identify the business location associated to a shipment.
+        adjustmentStatus:
+          type: string
+          enum:
+          - PENDING
+          - CHARGED
+          - REMOVED
+      additionalProperties: false
+      description: Details on adjustments that will be or have been issued to a customer account. Fields will only be provided if they differed from the original manifested data.
+  parameters:
+    subscriptionId:
+      name: subscriptionId
+      in: path
+      description: The unique identifier of the subscription.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    offsetParam:
+      name: offset
+      in: query
+      description: The number of items to skip before returning the results
+      schema:
+        minimum: 0
+        type: integer
+    limitParam:
+      name: limit
+      in: query
+      description: The number of items to return
+      schema:
+        maximum: 100
+        minimum: 1
+        type: integer
+        format: int32
+        default: 20
+    IfMatch:
+      name: If-Match
+      in: header
+      description: The value of the entity tag indicating the version of the resource to get or update. All DELETE and PUT operations require an ETag to be supplied as the If-Match parameter.  The ETag is returned in the GET operation and is good for one hour or until it is used in a DELETE or PUT operation.
+      required: true
+      schema:
+        type: string
+        example: 33a64df551425fcc55e4d42a148795d9f25f89d4
+  examples:
+    Subscription:
+      summary: Subscription event creation request to enroll MID in all adjustment events.
+      value:
+        listenerURL: https://myserver.com/listener
+        secret: SecretKeyPhraseThatIs32CharsLong
+        adminNotification:
+        - email: user@example.com
+        filterProperties:
+          CRID: "123456"
+          eventTypes:
+          - ALL
+  headers:
+    WWWAuthenticate:
+      description: Hint to the client application which security scheme to authorize a resource request.
+      required: false
+      schema:
+        type: string
+        example: "WWW-Authenticate: Bearer realm=\"https://api.usps.com\""
+    RetryAfter:
+      description: Indicate to the client application a time after which they can retry a resource request.
+      required: false
+      schema:
+        type: string
+        example: "Retry-After: 30"
+    ETag:
+      description: Entity Tag response header indicating version of resource. All DELETE and PUT operations require an ETag.  The ETag is returned in the GET operation and is good for one hour or until it is used in a DELETE or PUT operation.
+      schema:
+        type: string
+        example: "ETag: \"33a64df551425fcc55e4d42a148795d9f25f89d4\""
+  securitySchemes:
+    OAuth:
+      type: oauth2
+      description: The specified APIs accept an access token formatted as a JSON Web Token. The relative path to the OAuth2 version 3 API which supplies this access token is provided below for reference.
+      flows:
+        clientCredentials:
+          tokenUrl: /oauth2/v3/token
+          scopes:
+            subscriptions-adjustments: "Read, and write access to resources."
+        authorizationCode:
+          authorizationUrl: /oauth2/v3/authorize
+          tokenUrl: /oauth2/v3/token
+          scopes:
+            subscriptions-adjustments: "Read, and write access to resources."

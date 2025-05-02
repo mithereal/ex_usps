@@ -1,0 +1,542 @@
+---
+openapi: 3.0.0
+info:
+  title: SCAN Forms
+  description: |
+    Contact Us: [USPS API Support](https://emailus.usps.com/s/web-tools-inquiry) | [Terms of Service](https://about.usps.com/termsofuse.htm)
+    
+    Shipment Confirmation Acceptance Notice (SCAN) form allows integrators to link multiple domestic and international labels through one Electronic File Number (EFN) and physical SCAN Form (PS Form 5630). The USPS&#174; scans this form at mailing acceptance to generate an acceptance tracking event for each linked label.
+
+    **Authentication, Authorization and Access Control**
+
+    Client applications are given authorized access to protected information resources. Authorization is accomplished via the USPS&#174; Customer Onboarding Platform, where Customer Registration users may grant applications access to their protected business information. All client applications must go through this onboarding process. Any Customer Registration user wishing to share their protected business information with client application(s) may also grant authorized access.
+
+    The OAuth2, version 3 (/v3), API is based on this authorization grant and must be used to get tokens for all V3 APIs.
+    * The resulting OAuth2 access token is to be placed in the **Authorization** header, using the **Bearer** authentication scheme.
+    * All version 3 APIs validate access to protected information resources and will respond with a *401* HTTP status, *Unauthorized* reason, when the client application has not been authorized to access the given information resource.
+
+    Additional resources:  
+    * [Publication 199](https://postalpro.usps.com/pub199)
+    * [Field Information Kit](https://about.usps.com/postal-bulletin/2006/html/pb22192/pb6ktxt.html)
+ 
+  version: 3.1.5
+servers:
+- url: https://apis.usps.com/scan-forms/v3
+  description: Production Environment Endpoint
+- url: https://apis-tem.usps.com/scan-forms/v3
+  description: Testing Environment Endpoint
+paths:
+  /scan-form:
+    post:
+      tags:
+      - Resources
+      summary: Create a manifest of packages to be shipped.
+      description: "\nThe default media type of the response is multipart-mixed.  Setting the Accept header to either application/json or application/xml will only affect the metadata part of the multipart response.\n\n**How to use this API**\n\n  The metadata part of the multipart response representation is only in application/json format media type, as default.  The application/xml media type is not supported at this time.\n  \n  Ignore the Content-Encoding header in the second part, the SCAN form image file. The contents of this part are not compressed.\n  \n  Ignore the Content-Transfer-Encoding header in the second part, the SCAN form image file.  The contents of this part are always Base64 encoded.\n  \n  \n**Instructions**\n\n  Extract the first part of the multipart response as application/json media type.\n  \n  Extract the second part of the multipart response and Base64 decode it to yield the binary image file.\n  \n  Save the binary image file, given the Content-Type header value and the filename of this part (e.g. application/pdf, SCANForm.pdf).\n  It is recommended that you run a virus scan on the resulting downloaded file.\n  "
+      operationId: post-scan-form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SCANFormRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/SCANFormRequest'
+        required: true
+      responses:
+        "201":
+          description: Success. The Accept header will determine the media type format of only the metadata part of the multipart response, unless `application/vnd.usps.labels+json` or `application/vnd.usps.labels+xml` is used.
+          content:
+            multipart/form-data:
+              schema:
+                $ref: '#/components/schemas/SCANForm'
+              encoding:
+                SCANFormMetadata:
+                  contentType: application/json
+                  headers:
+                    Content-Disposition:
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: form-data; name=\"SCANFormMetadata\""
+                  style: form
+                SCANFormImage:
+                  contentType: "application/octet-stream, application/pdf, image/jpg, image/png, image/tiff, image/svg+xml"
+                  headers:
+                    Content-Disposition:
+                      description: Additional information on how the client should handle the content.
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: attachment; filename=\"scanform-image.jpg\""
+                  style: form
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCANForm'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SCANForm'
+            application/vnd.usps.labels+json:
+              schema:
+                $ref: '#/components/schemas/SCANFormVendorResponse'
+              examples:
+                SCANFormVendorResponse:
+                  $ref: '#/components/examples/SCANFormVendorResponse'
+            application/vnd.usps.labels+xml:
+              schema:
+                $ref: '#/components/schemas/SCANFormVendorResponse'
+        "400":
+          description: Bad Request.  There is an error in the received request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized request.
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Access is denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amount of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+      security:
+      - OAuth:
+        - scan-forms
+components:
+  schemas:
+    SCANFormMetadata:
+      type: object
+      properties:
+        form:
+          type: string
+          description: Designates returned SCAN Form type. 5630 - Retail Entry
+          default: "5630"
+          enum:
+            - "5630"
+        imageType:
+          type: string
+          description: |-
+            The type of label image requested.
+             * 'PDF'
+             * 'TIFF'
+             * 'JPG'
+             * 'PNG'
+             * 'SVG'
+             * 'NONE'
+          default: PDF
+          enum:
+            - PDF
+            - TIFF
+            - JPG
+            - PNG
+            - SVG
+            - NONE
+        labelType:
+          type: string
+          description: |-
+            Ability to select the label image size.  If omitted then the default label size is 8.5x11LABEL.
+             * '8.5x11LABEL'
+          default: 8.5x11LABEL
+          enum:
+            - 8.5x11LABEL
+        mailingDate:
+          type: string
+          format: date
+        overwriteMailingDate:
+          type: boolean
+          description:  If this value is set to `true`, the mailing dates for the packages contained within the scan form will be overwritten with the `mailingDate` value provided in the Scan Form request.  
+          default: false
+        entryFacilityZIPCode:
+          pattern: "^\\d{5}$"
+          type: string
+          description: The ZIP code of the destination entry facility.
+          example: "20260"
+        destinationEntryFacilityType:
+          type: string
+          enum:
+            - NONE
+            - DESTINATION_NETWORK_DISTRIBUTION_CENTER
+            - DESTINATION_SECTIONAL_CENTER_FACILITY
+            - DESTINATION_DELIVERY_UNIT
+            - DESTINATION_SERVICE_HUB
+        shipment:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/LabelShipment'
+            - $ref: '#/components/schemas/MIDShipment'
+            - $ref: '#/components/schemas/ManifestMIDShipment'
+        manifestNumber:
+          type: string
+          description: The electronic file number (EFN) stored in the shipping services file that represents all the tracking numbers associated to a shipment. 
+        trackingNumbers:
+          type: array
+          items:
+            type: string
+        fromAddress:
+          $ref: '#/components/schemas/SCANFormAddress'
+    SCANForm:
+      title: SCAN Form
+      type: object
+      properties:
+        SCANFormMetadata:
+          $ref: '#/components/schemas/SCANFormMetadata'
+        SCANFormImage:
+          type: string
+          format: byte
+      additionalProperties: false
+    SCANFormVendorResponse:
+      title: SCAN Form Vendor Response
+      description: Response for a SCAN Form request using the `application/vnd.usps.labels+json` or `application/vnd.usps.labels+xml` `Accept` header.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SCANFormMetadata'
+        - type: object
+          properties:
+            SCANFormImage:
+              type: string
+              format: byte
+          additionalProperties: true
+    SCANFormRequest:
+      title: SCAN Form
+      required:
+      - destinationEntryFacilityType
+      - entryFacilityZIPCode
+      - fromAddress
+      - mailingDate
+      - shipment
+      type: object
+      properties:
+        form:
+          type: string
+          description: Designates returned SCAN Form type. 5630 - Retail Entry
+          default: "5630"
+          enum:
+          - "5630"
+        imageType:
+          type: string
+          description: |-
+            The type of label image requested.
+             * 'PDF'
+             * 'TIFF'
+             * 'JPG'
+             * 'PNG
+             * 'SVG'
+             * 'NONE'
+          default: PDF
+          enum:
+          - PDF
+          - TIFF
+          - JPG
+          - PNG
+          - SVG
+          - NONE
+        labelType:
+          type: string
+          description: |-
+            Ability to select the label image size.  If omitted then the default label size is 8.5x11LABEL.
+             * '8.5x11LABEL'
+          default: 8.5x11LABEL
+          enum:
+          - 8.5x11LABEL
+        mailingDate:
+          type: string
+          format: date
+        overwriteMailingDate:
+          type: boolean
+          description: If this value is set to `true`, the mailing dates for the packages contained within the scan form will be overwritten with the `mailingDate` value provided in the Scan Form request.  
+          default: false
+        entryFacilityZIPCode:
+          pattern: "^\\d{5}$"
+          type: string
+          description: The ZIP Code&#8482; of the destination entry facility. 
+          example: "20260"
+        destinationEntryFacilityType:
+          type: string
+          enum:
+          - NONE
+          - DESTINATION_NETWORK_DISTRIBUTION_CENTER
+          - DESTINATION_SECTIONAL_CENTER_FACILITY
+          - DESTINATION_DELIVERY_UNIT
+          - DESTINATION_SERVICE_HUB
+        shipment:
+          type: object
+          oneOf:
+          - $ref: '#/components/schemas/LabelShipment'
+          - $ref: '#/components/schemas/MIDShipment'
+          - $ref: '#/components/schemas/ManifestMIDShipment'
+        fromAddress:
+          $ref: '#/components/schemas/SCANFormAddress'
+      additionalProperties: false
+    LabelShipment:
+      title: Label Shipment
+      type: object
+      properties:
+        trackingNumbers:
+          type: array
+          minItems: 1
+          maxItems: 40000
+          items:
+            type: string
+      additionalProperties: false
+    ManifestMIDShipment:
+      title: Manifest MID Shipment
+      type: object
+      properties:
+        manifestMID:
+          pattern: "^(\\d{6}|\\d{9})$"
+          type: string
+          description: Level of MID the SCAN Form is being requested for
+      additionalProperties: false
+    MIDShipment:
+      title: MID Shipment
+      type: object
+      properties:
+        MID:
+          pattern: "^(\\d{6}|\\d{9})$"
+          type: string
+          description: Level of MID the SCAN Form is being requested for
+      additionalProperties: false
+    SCANFormAddress:
+      title: SCAN Form Address
+      required:
+      - ZIPCode
+      - city
+      - state
+      - streetAddress
+      additionalProperties: true
+      description: Location of the Shipper. Only domestic addresses are supported for this API.  The fields firstName and lastName OR firm is required.
+      allOf:
+      - $ref: '#/components/schemas/DomesticAddress'
+      - $ref: '#/components/schemas/Addressee'
+      - type: object
+        properties:
+          ignoreBadAddress:
+            type: boolean
+            description: "Allows Non-Validated Origin Street Address. Enter “true” to bypass street address validation failures/errors or “false” if only validated addresses should be allowed. \n\n**Note:** Integrators are recommended to always use “false” to ensure no delivery issues. \n\nIn the event USPS cannot validate the street address, this tag will “bypass” address validation error when “true” is indicated to allow label creation which could impact delivery."
+        additionalProperties: true
+    ErrorMessage:
+      title: Error
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          description: The version of the API that was used and that raised the error.
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: The error status code that has been returned in response to the request.
+            message:
+              type: string
+              description: A human-readable message describing the error.
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: The status code response returned to the client.
+                  code:
+                    type: string
+                    description: An internal subordinate code used for error diagnosis.
+                  title:
+                    type: string
+                    description: A human-readable title that identifies the error.
+                  detail:
+                    type: string
+                    description: A human-readable description of the error that occurred.
+                  source:
+                    type: object
+                    properties:
+                      parameter:
+                        type: string
+                        description: The input in the request which caused an error.
+                      example:
+                        type: string
+                        description: An example of a valid value for the input parameter.
+                    additionalProperties: true
+                    description: The element that is suspected of originating the error.  Helps to pinpoint the problem.
+                additionalProperties: true
+          additionalProperties: true
+          description: The high-level error that has occurred as indicated by the status code.
+      additionalProperties: true
+      description: Standard error message response.
+    DomesticAddress:
+      title: Domestic Address
+      additionalProperties: true
+      description: Address fields for US locations
+      allOf:
+      - $ref: '#/components/schemas/Address'
+      - type: object
+        properties:
+          city:
+            maxLength: 28
+            minLength: 1
+            type: string
+            description: This is the city name of the address.
+          state:
+            maxLength: 2
+            minLength: 2
+            pattern: ^(AA|AE|AL|AK|AP|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MP|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)$
+            type: string
+            description: This is two-character state code of the address.
+          ZIPCode:
+            pattern: "^\\d{5}$"
+            type: string
+            description: This is the 5-digit ZIP code.
+          ZIPPlus4:
+            pattern: "^\\d{4}$"
+            type: string
+            description: This is the ZIP+4 extension.
+          urbanization:
+            maxLength: 96
+            type: string
+            description: "An area, sector, or residential development within a geographic area (typically used for addresses in Puerto Rico)"
+        additionalProperties: true
+    Address:
+      title: Address
+      type: object
+      properties:
+        streetAddress:
+          maxLength: 50
+          minLength: 1
+          type: string
+          description: The number of a building along with the name of the road or street on which it is located.
+        streetAddressAbbreviation:
+          maxLength: 50
+          minLength: 0
+          type: string
+          description: This is the abbreviation of street address line for the address.
+          readOnly: true
+        secondaryAddress:
+          maxLength: 50
+          type: string
+          description: "The secondary unit designator, such as apartment(APT) or suite(STE) number, defining the exact location of the address within a building.  For more information please see [Postal Explorer](https://pe.usps.com/text/pub28/28c2_003.htm)."
+        cityAbbreviation:
+          type: string
+          description: This is the abbreviation of city name for the address.
+          readOnly: true
+      additionalProperties: true
+      description: Address fields standard to all locations.
+    Addressee:
+      title: Addressee
+      type: object
+      properties:
+        firstName:
+          maxLength: 50
+          minLength: 1
+          type: string
+          description: First Name corresponding to the address.
+        lastName:
+          maxLength: 50
+          minLength: 1
+          type: string
+          description: Last Name corresponding to the address.
+        firm:
+          maxLength: 50
+          minLength: 0
+          type: string
+          description: Firm corresponding to the address. Firm is required for all domestic addresses in international label requests due to customs form requirements.
+      additionalProperties: true
+      description: Fields used to identity the entity receiving a mail piece or package
+  headers:
+    WWWAuthenticate:
+      description: Hint to the client application which security scheme to authorize a resource request.
+      required: false
+      schema:
+        type: string
+        example: "WWW-Authenticate: Bearer realm=\"https://api.usps.com\""
+    RetryAfter:
+      description: Indicate to the client application a time after which they can retry a resource request.
+      required: false
+      schema:
+        type: string
+        example: "Retry-After: 30"
+  examples:
+    SCANFormVendorResponse:
+      summary: SCAN Form Response
+      description: Example response for a SCAN Form request using the `application/vnd.usps.labels+json` `Accept` header.
+      value:
+        form: "5630"
+        imageType: SVG
+        labelType: 8.5x11LABEL
+        mailingDate: "2024-12-06"
+        overwriteMailingDate: false
+        entryFacilityZIPCode: "63116"
+        destinationEntryFacilityType: NONE
+        shipment:
+          trackingNumbers:
+            - "9405530900066611112089"
+        fromAddress:
+          firstName: JOHN
+          lastName: DOE
+          firm: USPS
+          streetAddress: 2700 S JEFFERSON AVE
+          secondaryAddress: STE 150
+          city: SAINT LOUIS
+          state: MO
+          ZIPCode: "63104"
+          ZIPPlus4: "2351"
+          ignoreBadAddress: false
+        manifestNumber: "9475038234567000031430"
+        SCANFormImage: iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVR42mNgwAf///5ebGxgYGJiYmBjY2MzDw8PAAzHAxiQI3A4VCYgKQZjIyMjIyMzCwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwK6IBwC7CvHf3RbAAAAAElFTkSuQmCC
+        trackingNumbers:
+          - "9405530900066611112089"
+
+  securitySchemes:
+    OAuth:
+      type: oauth2
+      description: The specified APIs accept an access token formatted as a JSON Web Token. The relative path to the OAuth2 version 3 API which supplies this access token is provided below for reference.
+      flows:
+        clientCredentials:
+          tokenUrl: /oauth2/v3/token
+          scopes:
+            scan-forms: Both read and create access to Scan Forms API.
+        authorizationCode:
+          authorizationUrl: /oauth2/v3/authorize
+          tokenUrl: /oauth2/v3/token
+          scopes:
+            scan-forms: Both read and create access to Scan Forms API.

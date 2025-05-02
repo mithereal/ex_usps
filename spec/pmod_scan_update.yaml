@@ -1,0 +1,881 @@
+openapi: 3.0.0
+info:
+  title: Priority Mail Open and Distribute (PMOD)
+  description: |
+    Contact Us: [USPS API Support](https://emailus.usps.com/s/web-tools-inquiry) | [Terms of Service](https://about.usps.com/termsofuse.htm)
+    
+    The Priority Mail Open and Distribute (PMOD) API allows users to create and manage PMOD containers.
+    
+    This API provides endpoints to create new containers, close containers, and generate necessary labels and manifests.
+
+    **Authentication, Authorization and Access Control**
+
+    Client applications are given authorized access to protected information resources. Authorization is accomplished via the USPS&#174; Customer Onboarding Platform, where Customer Registration users may grant applications access to their protected business information. All client applications must go through this onboarding process. Any Customer Registration user wishing to share their protected business information with client application(s) may also grant authorized access.
+
+    The OAuth2, version 3 (/v3), API is based on this authorization grant and must be used to get tokens for all V3 APIs.
+    * The resulting OAuth2 access token is to be placed in the **Authorization** header, using the **Bearer** authentication scheme.
+    * All version 3 APIs validate access to protected information resources and will respond with a *401* HTTP status, *Unauthorized* reason, when the client application has not been authorized to access the given information resource.
+
+    Additional resources:  
+    * [Publication 199](https://postalpro.usps.com/pub199)
+  version: 3.0.0
+servers:
+  - url: https://apis.usps.com/pmod/v3
+    description: Production Environment Endpoint
+security:
+  - OAuth:
+      - pmod
+paths:
+  /pmod/create:
+    post:
+      tags:
+        - Resources
+      summary: Create a PMOD container
+      description: |-
+        Create a new PMOD container with the associated attributes from the request body.
+        
+        Packages can be added to the container until manifest.
+        
+        The response will contain the IMpb label and a 99M IMcb label.
+      operationId: post-pmod
+      parameters:
+        - $ref: "#/components/parameters/X-Payment-Authorization-Token"
+        - $ref: "#/components/parameters/X-Multipart-Response"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePmodContainerRequest'
+            examples:
+              CreatePmodContainerRequestExample:
+                $ref: '#/components/examples/CreatePmodContainerRequestExample'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/CreatePmodContainerRequest'
+      responses:
+        "201":
+          description: Resource created
+          content:
+            multipart/form-data:
+              schema:
+                $ref: '#/components/schemas/CreatePmodContainerResponse'
+              examples:
+                CreatePmodContainerResponseExample:
+                  $ref: '#/components/examples/CreatePmodContainerResponseExample'
+              encoding:
+                pmodContainerMetadata:
+                  contentType: application/json
+                  headers:
+                    Content-Disposition:
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: form-data; name=\"pmodContainerMetadata\""
+                  style: form
+                labelImage:
+                  contentType: "application/octet-stream, application/pdf, image/jpg, image/tiff, image/svg+xml"
+                  headers:
+                    Content-Disposition:
+                      description: Additional information on how the client should handle the content.
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: attachment; filename=\"labelImage.jpg\""
+                  style: form
+                imcbImage:
+                  contentType: "application/octet-stream, application/pdf, image/jpg, image/tiff, image/svg+xml"
+                  headers:
+                    Content-Disposition:
+                      description: Additional information on how the client should handle the content.
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: attachment; filename=\"imcbImage.jpg\""
+                  style: form
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePmodContainerResponse'
+              encoding:
+                metadata:
+                  contentType: application/json
+                  style: form
+                examples:
+                  style: form
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/CreatePmodContainerResponse'
+              encoding:
+                metadata:
+                  contentType: application/xml
+                  style: form
+                examples:
+                  style: form
+            application/vnd.usps.pmod+json:
+              schema:
+                $ref: '#/components/schemas/CreatePmodContainerResponse'
+            application/vnd.usps.pmod+xml:
+              schema:
+                $ref: '#/components/schemas/CreatePmodContainerResponse'
+        "400":
+          description: Bad Request.  There is an error in the received request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized request.
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Access is denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amount of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: { }
+
+  /pmod/manifest/{container-id}:
+    post:
+      tags:
+        - Resources
+      summary: Close a PMOD container
+      description: Allows the caller to close a container and generate a manifest.
+      operationId: post-close
+      parameters:
+        - $ref: "#/components/parameters/X-Payment-Authorization-Token"
+        - name: container-id
+          in: path
+          description: Container ID for the PMOD container
+          required: true
+          schema:
+            type: string
+          example: 99M123456789EMA000001
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClosePmodContainerRequest'
+            examples:
+              ClosePmodContainerRequestExample:
+                $ref: '#/components/examples/ClosePmodContainerRequestExample'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ClosePmodContainerRequest'
+      responses:
+        "200":
+          description: PMOD container successfully closed and scan form generated and ready for manifest .
+          content:
+            multipart/form-data:
+              schema:
+                $ref: '#/components/schemas/ClosePmodResponse'
+              examples:
+                ClosePmodResponseExample:
+                  $ref: '#/components/examples/ClosePmodResponseExample'
+              encoding:
+                closePmodMetadata:
+                  contentType: application/json
+                  headers:
+                    Content-Disposition:
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: form-data; name=\"closePmodMetadata\""
+                  style: form
+                SCANFormImage:
+                  contentType: "application/octet-stream, application/pdf, image/jpg, image/png, image/tiff, image/svg+xml"
+                  headers:
+                    Content-Disposition:
+                      description: Additional information on how the client should handle the content.
+                      style: simple
+                      explode: false
+                      schema:
+                        type: string
+                        example: "Content-Disposition: attachment; filename=\"SCANFormImage.jpg\""
+                  style: form
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClosePmodResponse'
+              encoding:
+                metadata:
+                  contentType: application/json
+                  style: form
+                examples:
+                  style: form
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ClosePmodResponse'
+              encoding:
+                metadata:
+                  contentType: application/xml
+                  style: form
+                examples:
+                  style: form
+            application/vnd.usps.pmod+json:
+              schema:
+                $ref: '#/components/schemas/ClosePmodResponse'
+            application/vnd.usps.pmod+xml:
+              schema:
+                $ref: '#/components/schemas/ClosePmodResponse'
+        "400":
+          description: Bad Request.  There is an error in the received request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "401":
+          description: Unauthorized request.
+          headers:
+            WWW-Authenticate:
+              $ref: '#/components/headers/WWWAuthenticate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "403":
+          description: Access is denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "429":
+          description: Too Many Requests. Too many requests have been received from client in a short amount of time.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        "503":
+          description: Service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        default:
+          description: Other unanticipated errors that may occur.
+          content: {}
+components:
+  schemas:
+    CreatePmodContainerRequest:
+      title: Create PMOD Container Request
+      required:
+        - originAddress
+        - destinationZIPCode
+        - destinationEntryFacilityType
+        - enclosedMailClass
+        - mailerName
+        - mailingDate
+        - weight
+        - processingCategory
+        - impbContainerType
+        - imcbContainerType
+      type: object
+      properties:
+        imageInfo:
+          $ref: '#/components/schemas/ImageInfo'
+        originAddress:
+          $ref: '#/components/schemas/DomesticAddress'
+        senderAddress:
+          $ref: '#/components/schemas/DomesticLabelAddress'
+        returnAddress:
+          $ref: '#/components/schemas/DomesticLabelAddress'
+        destinationZIPCode:
+          maxLength: 5
+          minLength: 5
+          pattern: "\\d{5}"
+          type: string
+          description: 5-digit ZIP code for the Destination Entry Facility
+        containerMailClass:
+          description: Mail class for the Open and Distribute container
+          type: string
+          default: PRIORITY_MAIL
+          enum:
+            - PRIORITY_MAIL
+        enclosedMailClass:
+          description: Mail class for the enclosed container contents.
+          type: string
+          enum:
+            - PARCEL_SELECT
+        mailerName:
+          $ref: '#/components/schemas/MailerName'
+        processingCategory:
+          type: string
+          description: |-
+            The type of packages that will be nested to the container. `MIXED` is only available for `DESTINATION_DELIVERY_UNIT` containers.
+          enum:
+            - MACHINABLE
+            - MIXED
+            - NONSTANDARD
+        destinationEntryFacilityType:
+          type: string
+          description: Types of Facilities.
+          enum:
+            - DESTINATION_NETWORK_DISTRIBUTION_CENTER
+            - DESTINATION_SECTIONAL_CENTER_FACILITY
+            - DESTINATION_DELIVERY_UNIT
+        mailingDate:
+          description: |-
+            The mailing date for when the container will be shipped.
+            The mailing date may be today plus 0 to 7 days in advance.
+          oneOf:
+            - $ref: '#/components/schemas/MailingDate'
+            - $ref: '#/components/schemas/MailingDateTime'
+        weightUOM:
+          type: string
+          description: |-
+            Weight Unit of Measure
+               * lb - Pounds
+          default: lb
+          enum:
+            - lb
+        weight:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+          description: "The package weight, in weightUOM (Unit Of Measure). Items must weigh 70 pounds (1120 ounces) or less."
+        impbContainerType:
+          type: string
+          description: |
+            IMPB Container Type requested.
+          enum:
+            - OPEN_DISTRIBUTE_FULL_POSTAL_PAKS
+            - OPEN_DISTRIBUTE_HALF_TRAY_BOX
+            - OPEN_DISTRIBUTE_HALF_POSTAL_PAKS
+            - SACK
+        imcbContainerType:
+          type: string
+          description: |
+            IMCB Container Type requested.
+          enum:
+            - OPEN_DISTRIBUTE_FULL_POSTAL_PAKS
+            - OPEN_DISTRIBUTE_HALF_TRAY_BOX
+            - OPEN_DISTRIBUTE_HALF_POSTAL_PAKS
+            - SACK
+      additionalProperties: false
+      description: Create PMOD Container Request
+    CreatePmodContainerResponse:
+      title: Create PMOD Container Response for `multipart/form-data`.
+      type: object
+      properties:
+        pmodContainerMetadata:
+          $ref: '#/components/schemas/PmodContainerMetadata'
+        labelImage:
+          type: string
+          description: "The IMpb label image, Base64 encoded file contents."
+          format: byte
+        imcbImage:
+          type: string
+          description: "The 99M IMcb image, Base64 encoded file contents."
+          format: byte
+        warnings:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Container_warnings'
+      additionalProperties: false
+    PmodContainerMetadata:
+      title: Create PMOD Container Metadata
+      type: object
+      properties:
+        containerID:
+          maxLength: 34
+          type: string
+          description: The 99M IMcb number for the created container.
+          example: "99M123456789EMA000001"
+        trackingNumber:
+          type: string
+          description: The IMpb tracking number associated with the container.
+          example: "9205590006662202169556"
+        commitment:
+          $ref: '#/components/schemas/Commitment'
+        facilityInfo:
+          $ref: '#/components/schemas/FacilityInfo'
+        constructCode:
+          type: string
+          description: The barcode construct code associated with the tracking number
+        retailDistributionCode:
+          type: string
+          description: Retail Description Code associated with label
+          example: "01"
+      additionalProperties: false
+      description: Create PMOD Container Response
+    ImageInfo:
+      title: Image Info
+      type: object
+      properties:
+        imageType:
+          type: string
+          description: |
+            The type of label image requested.  
+            If omitted then the default image type is `PDF`.
+            - PDF
+            - TIFF
+            - JPG
+            - SVG
+            - ZPL203DPI
+            - ZPL300DPI
+            - NONE
+          default: PDF
+          enum:
+            - PDF
+            - TIFF
+            - JPG
+            - SVG
+            - ZPL203DPI
+            - ZPL300DPI
+            - NONE
+        labelType:
+          type: string
+          description: |
+            Ability to select the label image size.  If omitted then the default label size is `4X6LABEL`.
+          default: 4X6LABEL
+          enum:
+            - 4X6LABEL
+        imcbLabelType:
+          type: string
+          description: |
+            Ability to select the 99M image size.  If omitted then the default label size is `6X4LABEL`.
+          default: 6X4LABEL
+          enum:
+            - 6X4LABEL
+      additionalProperties: false
+      description: Additional details used to determine how to generate the label image.
+    DomesticAddress:
+      title: Domestic Address
+      additionalProperties: true
+      description: Address fields for US locations
+      required:
+        - ZIPCode
+        - city
+        - state
+        - streetAddress
+      properties:
+        streetAddress:
+          maxLength: 50
+          minLength: 1
+          type: string
+          description: The number of a building along with the name of the road or street on which it is located.
+        secondaryAddress:
+          maxLength: 50
+          type: string
+          description: "The secondary unit designator, such as apartment(APT) or suite(STE) number, defining the exact location of the address within a building.  For more information please see [Postal Explorer](https://pe.usps.com/text/pub28/28c2_003.htm)."
+        city:
+          maxLength: 28
+          minLength: 1
+          type: string
+          description: This is the city name of the address.
+        state:
+          maxLength: 2
+          minLength: 2
+          pattern: ^(AA|AE|AL|AK|AP|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MP|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)$
+          type: string
+          description: This is two-character state code of the address.
+        ZIPCode:
+          pattern: "\\d{5}"
+          type: string
+          description: This is the 5-digit ZIP code.
+        ZIPPlus4:
+          pattern: "\\d{4}"
+          type: string
+          description: This is the ZIP+4 extension.
+          nullable: true
+        urbanization:
+          maxLength: 96
+          type: string
+          description: "An area, sector, or residential development within a geographic area (typically used for addresses in Puerto Rico)"
+    Addressee:
+      title: Addressee
+      type: object
+      properties:
+        firstName:
+          maxLength: 50
+          minLength: 1
+          type: string
+          description: This is the first name corresponding to the address.
+        lastName:
+          maxLength: 50
+          minLength: 1
+          type: string
+          description: This is the last name corresponding to the address.
+        firm:
+          maxLength: 50
+          minLength: 0
+          type: string
+          description: This is the firm corresponding to the address. Firm is required for all domestic addresses in international label requests due to customs form requirements.
+      additionalProperties: true
+      description: Fields used to identity the entity receiving a mail piece or package
+    Phone:
+      pattern: "^\\+?[1-9][0-9]{7,14}$"
+      type: string
+      description: "The phone number, including the country extension and area code, with no punctuation."
+    Email:
+      maxLength: 50
+      pattern: "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+      type: string
+      description: 'Email address used for redirect notification via email. '
+      format: email
+    DomesticLabelAddress:
+      title: Domestic Label Address
+      required:
+      - ZIPCode
+      - city
+      - state
+      - streetAddress
+      type: object
+      additionalProperties: true
+      description: |-
+        Uses for:
+
+        The address where the package is being mailed from. The destination ZIP Code is used for calculating pricing.
+
+        The destination address of the recipient. The origin ZIP Code is used for calculating pricing.
+
+        The address of the business.
+
+        The address where the package should be returned to if it is deemed undeliverable or returned to sender. This address will be printed in the return address block of the label.
+      allOf:
+      - $ref: '#/components/schemas/DomesticAddress'
+      - $ref: '#/components/schemas/Addressee'
+      - type: object
+        properties:
+          phone:
+            $ref: '#/components/schemas/Phone'
+          email:
+            $ref: '#/components/schemas/Email'
+          ignoreBadAddress:
+            type: boolean
+            description: "Allows Non-Validated Origin Street Address. Enter “true” to bypass street address validation failures/errors or “false” if only validated addresses should be allowed. \n\n**Note:** Integrators are recommended to always use “false” to ensure no delivery issues. \n\nIn the event USPS cannot validate the street address, this tag will “bypass” address validation error when “true” is indicated to allow label creation which could impact delivery."
+    MailingDate:
+      type: string
+      description: "The date package will be mailed. The mailing date may be today\
+        \ plus 0 to 7 days in advance. Enter the date in the full-date notation as\
+        \ defined by [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)."
+      format: date
+    MailingDateTime:
+      type: string
+      description: "The date and time a package will be mailed. The mailing date may\
+        \ be today plus 0 to 7 days in advance. Enter the date in the date-time notation\
+        \ as defined by [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)."
+      format: date-time
+    Container_warnings:
+      type: object
+      properties:
+        warningCode:
+          type: string
+          description: Warning code in response to the request.
+        warningDescription:
+          description: A human-readable message describing the warning.
+          type: string
+      xml:
+        name: warning
+    Commitment:
+      title: Commitment
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Commitment name such as 1-day, 2-day, 3-day, Military, DPO"
+        scheduleDeliveryDate:
+          type: string
+          description: Date in the YYYY-MM-DD format.
+      additionalProperties: false
+      description: The commitment and scheduled delivery date of the package.
+    FacilityInfo:
+      title: Facility Info
+      description: Address of the destination entry facility the container will be brought to.
+      type: object
+      properties:
+        label:
+          type: string
+          description: "The name of the facility as it appears on the label"
+        supportedZips:
+          type: string
+          description: "A list of zip codes supported by the facility"
+        address:
+          type: string
+          description: "The address of the facility"
+        city:
+          type: string
+          description: "The city the facility is located in"
+        state:
+          type: string
+          description: "The state the facility is located in"
+        ZIPCode:
+          type: string
+          description: "The zip code the facility is located in"
+      additionalProperties: false
+    ErrorMessage:
+      title: Error
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          description: The version of the API that was used and that raised the error.
+        error:
+          $ref: '#/components/schemas/ErrorMessage_error'
+      additionalProperties: true
+      description: Standard error message response.
+    ErrorMessage_error_source:
+      type: object
+      properties:
+        parameter:
+          type: string
+          description: The input in the request which caused an error.
+        example:
+          type: string
+          description: An example of a valid value for the input parameter.
+      additionalProperties: true
+      description: The element that is suspected of originating the error.  Helps
+        to pinpoint the problem.
+    ErrorMessage_error_errors:
+      type: object
+      properties:
+        status:
+          type: string
+          description: The status code response returned to the client.
+        code:
+          type: string
+          description: An internal subordinate code used for error diagnosis.
+        title:
+          type: string
+          description: A human-readable title that identifies the error.
+        detail:
+          type: string
+          description: A human-readable description of the error that occurred.
+        source:
+          $ref: '#/components/schemas/ErrorMessage_error_source'
+      additionalProperties: true
+    ErrorMessage_error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The error status code that has been returned in response to
+            the request.
+        message:
+          type: string
+          description: A human-readable message describing the error.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorMessage_error_errors'
+      additionalProperties: true
+      description: The high-level error that has occurred as indicated by the status
+        code.
+    ClosePmodContainerRequest:
+      type: object
+      properties:
+        mailingDate:
+          description: "The mailing date for when the container will be shipped, when\
+            \ included in the request all packages nested to the container will be\
+            \ updated to align with the associated mailingDate. The mailing date may\
+            \ be today plus 0 to 7 days in advance."
+          oneOf:
+            - $ref: '#/components/schemas/MailingDate'
+            - $ref: '#/components/schemas/MailingDateTime'
+        generateScanForm:
+          type: boolean
+          description: Designates whether a scan form will be returned in the response
+          default: false
+        scanFormImageType:
+          type: string
+          description: |
+            The type of scan form image requested.  
+            If omitted then the default image type is `PDF`.
+            - PDF
+            - TIFF
+            - JPG
+            - PNG
+            - SVG
+            - NONE
+    ClosePmodResponse:
+      title: Close PMOD Container Response for `multipart/form-data`
+      type: object
+      properties:
+        closePmodMetadata:
+          $ref: '#/components/schemas/ClosePmodMetadata'
+        SCANFormImage:
+          type: string
+          description: |
+            The scan form image, Base64 encoded file contents. Only returned when requested with `generateScanForm`.
+          format: byte
+      additionalProperties: false
+    ClosePmodMetadata:
+      type: object
+      properties:
+        packageCount:
+          type: integer
+          description: Number of packages in the container
+          example: 5
+        totalWeight:
+          type: number
+          description: Total weight of all the packages enclosed
+          example: 32.0
+    MailerName:
+      type: string
+      description: Name of the business who is shipping the container.
+  headers:
+    WWWAuthenticate:
+      description: Hint to the client application which security scheme to authorize a resource request.
+      required: false
+      schema:
+        type: string
+        example: "WWW-Authenticate: Bearer realm=\"https://api.usps.com\""
+    RetryAfter:
+      description: Indicate to the client application a time after which they can retry a resource request.
+      required: false
+      schema:
+        type: string
+        example: "Retry-After: 30"
+  parameters:
+    X-Payment-Authorization-Token:
+      name: X-Payment-Authorization-Token
+      in: header
+      description: |
+        Payment Authorization Token from the payments API Call.
+      required: true
+      schema:
+        type: string
+      example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6I kpvaG4gRG9lIiwiYWRtaW4iOmZhbHNlfQ.gWDlJdpCTIHVYKkJSfAVNUn0ZkAjMxskDDm-5Fhe WJ7xXgW8k5CllcGk4C9qPrfa1GdqfBrbX_1x1E39JY8BYLobAfAg1fs_Ky8Z7U1oCl6HL63yJq_ wVNBHp49hWzg3-ERxkqiuTv0tIuDOasIdZ5FtBdtIP5LM9Oc1tsuMXQXCGR8GqGf1Hl2qv8MCyn NZJuVdJKO_L3WGBJouaTpK1u2SEleVFGI2HFvrX_jS2ySzDxoO9KjbydK0LNv_zOI7kWv-gAmA j-v0mHdJrLbxD7LcZJEGRScCSyITzo6Z59_jG_97oNLFgBKJbh12nvvPibHpUYWmZuHkoGvuy5RLUA
+    X-Multipart-Response:
+      name: X-Multipart-Response
+      in: header
+      description: |
+        Used to indicate to the server that the client is expecting a multipart response.
+      schema:
+        type: boolean
+      example: true
+  securitySchemes:
+    OAuth:
+      type: oauth2
+      description: The specified APIs accept an access token formatted as a JSON Web Token. The relative path to the OAuth2 version 3 API which supplies this access token is provided below for reference.
+      flows:
+        clientCredentials:
+          tokenUrl: /oauth2/v3/token
+          scopes:
+            pmod: "Read, create and cancel access to PMOD."
+        authorizationCode:
+          authorizationUrl: /oauth2/v3/authorize
+          tokenUrl: /oauth2/v3/token
+          scopes:
+            pmod: "Read, create and cancel access to PMOD."
+  examples:
+    CreatePmodContainerRequestExample:
+      description: Sample request for creating a PMOD container
+      value:
+        imageInfo:
+          imageType: PDF
+          labelType: 4X6LABEL
+          imcbLabelType: 6X4LABEL
+        originAddress:
+          streetAddress: 44 Brown Ave
+          secondaryAddress: PO Box A12
+          city: Cleveland
+          state: OH
+          ZIPCode: "44001"
+          ZIPPlus4: "1163"
+        destinationZIPCode: "08031"
+        containerMailClass: PRIORITY_MAIL
+        enclosedMailClass: PARCEL_SELECT
+        mailerName: Blue Whale Shipping Inc
+        processingCategory: MACHINABLE
+        destinationEntryFacilityType: DESTINATION_NETWORK_DISTRIBUTION_CENTER
+        mailingDate: "2025-02-15"
+        weightUOM: lb
+        weight: 5.0
+        imcbContainerType: OPEN_DISTRIBUTE_FULL_POSTAL_PAKS
+        impbContainerType: OPEN_DISTRIBUTE_HALF_TRAY_BOX
+    CreatePmodContainerResponseExample:
+      description: Sample success response for creating PMOD container
+      value:
+        pmodContainerMetadata:
+          containerID: 99M123456789EMA000001
+          trackingNumber: "9205590006662202169556"
+          commitment:
+            name: 1-day
+            scheduleDeliveryDate: "2024-09-09"
+          constructCode: "C01"
+          retailDistributionCode: "01"
+          facilityInfo:
+            # label:
+            # supportedZips:
+            address: 45 L St SW
+            city: Washington
+            state: DC
+            ZIPCode: "08031"
+        warnings:
+            - warningCode: "100"
+              warningDescription: "warning code description"
+        labelImage: iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVR42mNgwAf///5ebGxgYGJiYmBjY2MzDw8PAAzHAxiQI3A4VCYgKQZjIyMjIyMzCwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwK6IBwC7CvHf3RbAAAAAElFTkSuQmCC
+        imcbImage: iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVR42mNgwAf///5ebGxgYGJiYmBjY2MzDw8PAAzHAxiQI3A4VCYgKQZjIyMjIyMzCwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwK6IBwC7CvHf3RbAAAAAElFTkSuQmCC
+    ClosePmodContainerRequestExample:
+      description: Sample request for close and manifest PMOD container
+      value:
+        mailingDate: "2025-02-17"
+        generateScanForm: false
+        scanFormImageType: "PDF"
+    ClosePmodResponseExample:
+      description: Sample response for close and manifest PMOD container
+      value:
+        closePmodMetadata:
+          packageCount: 5
+          totalWeight: 10.5
+        SCANFormImage: iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVR42mNgwAf///5ebGxgYGJiYmBjY2MzDw8PAAzHAxiQI3A4VCYgKQZjIyMjIyMzCwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwK6IBwC7CvHf3RbAAAAAElFTkSuQmCC

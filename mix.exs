@@ -1,7 +1,7 @@
 defmodule UspsEx.MixProject do
   use Mix.Project
 
-  @version "2023.1.27"
+  @version "2025.1.8"
   @source_url "https://github.com/mithereal/ex_usps"
 
   def project do
@@ -28,7 +28,7 @@ defmodule UspsEx.MixProject do
 
   defp description do
     """
-    A Feature Complete Usps api for elixir
+    A Feature Complete Oauth Elixir Client for The USPS Api
     """
   end
 
@@ -59,7 +59,8 @@ defmodule UspsEx.MixProject do
       {:decimal, "~> 1.3"},
       {:iso, "~> 1.2"},
       {:csv, "~> 2.4", optional: true, only: [:dev]},
-      {:nanoid, "~> 2.0"}
+      {:nanoid, "~> 2.0"},
+      {:oapi_generator, "~> 0.2.0", only: :dev, runtime: false}
     ]
   end
 
